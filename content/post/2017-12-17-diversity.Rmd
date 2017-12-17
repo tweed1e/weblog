@@ -1,0 +1,14 @@
+---
+title: "Do something with crime data"
+author: "Jesse Tweedle"
+date: 2017-12-18T15:33:11-05:00
+categories: ["R"]
+tags: ["R Markdown", "plot", "regression"]
+draft: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
+Get some data and do something.

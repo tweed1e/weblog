@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>R on Jesse Tweedle</title>
+    <link>/categories/r/</link>
+    <description>Recent content in R on Jesse Tweedle</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 18 Dec 2017 15:33:11 -0500</lastBuildDate>
+    
+	<atom:link href="/categories/r/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Do something with crime data</title>
+      <link>/post/2017-12-17-diversity/</link>
+      <pubDate>Mon, 18 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/post/2017-12-17-diversity/</guid>
+      <description>Get some data and do something.</description>
+    </item>
+    
+    <item>
+      <title>Closure hack for parallel processing on windows</title>
+      <link>/post/2017-12-16-closure-windows-parallel/</link>
+      <pubDate>Sun, 17 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/post/2017-12-16-closure-windows-parallel/</guid>
+      <description>Your situation:  you have a big data frame you want to apply a (pretty complex) function to each row you are on a Windows server  For example, you know baby names are much cooler when they have no vowels and no uppercase letters.
+library(babynames) drop_vowels &amp;lt;- function(text) { gsub(&amp;quot;[aeiou]&amp;quot;, &amp;quot;&amp;quot;, text, ignore.case = TRUE) } add_bang &amp;lt;- function(text) { paste0(text, &amp;quot;!&amp;quot;) } mutate_names &amp;lt;- function(tbl) { # names are cooler with no vowels and no capital letters.</description>
+    </item>
+    
+  </channel>
+</rss>
