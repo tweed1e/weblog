@@ -27,7 +27,7 @@
       
       <guid>/post/2017-12-16-closure-windows-parallel/</guid>
       <description>Your situation:  you have a big data frame you want to apply a (pretty complex) function to each row you are on a Windows server  For example, you know baby names are much cooler when they have no vowels and no uppercase letters.
-library(babynames) drop_vowels &amp;lt;- function(text) { gsub(&amp;quot;[aeiou]&amp;quot;, &amp;quot;&amp;quot;, text, ignore.case = TRUE) } add_bang &amp;lt;- function(text) { paste0(text, &amp;quot;!&amp;quot;) } mutate_names &amp;lt;- function(tbl) { # names are cooler with no vowels and no capital letters.</description>
+# a dataset of babynames library(babynames) # a function that drops vowels from names drop_vowels &amp;lt;- function(text) { gsub(&amp;quot;[aeiou]&amp;quot;, &amp;quot;&amp;quot;, text) } # a function that adds a exclamation mark at the end, just bc add_bang &amp;lt;- function(text) { paste0(text, &amp;quot;!</description>
     </item>
     
     <item>

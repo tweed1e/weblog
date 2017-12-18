@@ -13,7 +13,19 @@
   </url>
   
   <url>
+    <loc>/tags/babynames/</loc>
+    <lastmod>2017-12-17T15:33:11-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/closure/</loc>
+    <lastmod>2017-12-17T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -28,6 +40,12 @@
   </url>
   
   <url>
+    <loc>/tags/parallel-processing/</loc>
+    <lastmod>2017-12-17T15:33:11-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>/tags/plot/</loc>
     <lastmod>2017-12-18T15:33:11-05:00</lastmod>
     <priority>0</priority>
@@ -36,6 +54,12 @@
   <url>
     <loc>/post/</loc>
     <lastmod>2017-12-18T15:33:11-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/r/</loc>
+    <lastmod>2017-12-17T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -59,7 +83,13 @@
   
   <url>
     <loc>/tags/</loc>
-    <lastmod>2017-12-18T15:33:11-05:00</lastmod>
+    <lastmod>2017-12-17T15:33:11-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/windows/</loc>
+    <lastmod>2017-12-17T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   

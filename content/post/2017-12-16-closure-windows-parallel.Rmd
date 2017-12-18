@@ -3,7 +3,7 @@ title: "Closure hack for parallel processing on windows"
 author: "Jesse Tweedle"
 date: 2017-12-17T15:33:11-05:00
 categories: ["R"]
-tags: ["R Markdown", "plot", "regression"]
+tags: ["closure", "R", "Windows", "parallel processing", "babynames"]
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE)
@@ -17,17 +17,20 @@ knitr::opts_chunk$set(collapse = TRUE)
 
 For example, you know baby names are much cooler when they have no vowels and no uppercase letters.
 ``` {r}
+# a dataset of babynames
 library(babynames)
 
+# a function that drops vowels from names
 drop_vowels <- function(text) {
-  gsub("[aeiou]", "", text, ignore.case = TRUE) 
+  gsub("[aeiou]", "", text) 
 }
+# a function that adds a exclamation mark at the end, just bc
 add_bang <- function(text) {
   paste0(text, "!")
 }
 mutate_names <- function(tbl) {
   # names are cooler with no vowels and no capital letters.
-  dplyr::mutate(tbl, name := tolower(add_bang(drop_vowels(name))))
+  dplyr::mutate(tbl, name := add_bang(drop_vowels(tolower(name))))
 }
 
 mutate_names(babynames[1:10, ])
@@ -40,24 +43,24 @@ library(parallel)
 cl <- makeCluster(detectCores())
 bind_rows(parLapply(cl, split(babynames, babynames$year), mutate_names))
 stopCluster(cl)
-# Error in checkForRemoteErrors(val) : 
-#   2 nodes produced errors; first error: 
-# Evaluation error: could not find function "add_bang". 
+## Error in checkForRemoteErrors(val) : 
+##    2 nodes produced errors; first error: 
+##    Evaluation error: could not find function "add_bang". 
 ```
 
 On Mac, you can choose between `parLapply` and `mclapply`, but on Windows you only have `parLapply`. `parLapply` creates processes that don't have access to the global environment (see this Stack Overflow Q for technical details on [parallel processing on Windows vs Mac](https://stackoverflow.com/questions/17196261/understanding-the-differences-between-mclapply-and-parlapply-in-r)), so `add_bang` isn't passed to the clusters that are trying to run `mutate_names`. They don't know anything other than what you give them (they also don't know where to find `mutate` unless you use `dplyr::mutate` or `library(dplyr)` inside the function). (Even then, if your libraries aren't on the search path, you can't find them no matter what, but I haven't solved that problem yet.)
 
-One option is to use `parallelsugar` (via [nathanvan](https://github.com/nathanvan/parallelsugar)), which approximates the `mclapply` function on Mac that has access to the global environment. However, if your data frame is large (or if you have other large things in the global environment, or lots of unrelated packages), it can take forever to set up the clusters.
+One option is to use `parallelsugar` (via [nathanvan](https://github.com/nathanvan/parallelsugar)), which approximates the `mclapply` function on Mac that has access to the global environment. `parallelsugar` works by using `parallel::clusterExport` to export objects to the child processes. However, if your data frame is large (or if you have other large things in the global environment, or lots of unrelated packages), it can take forever to set up the clusters.
 
-## [Closure](http://adv-r.had.co.nz/Functional-programming.html#closures) to the rescue!
-
-`parallelsugar` works by using `parallel::clusterExport` to export objects to the child processes. If you like, you can use the same logic to pick and choose a few things to export until it starts to work. Here we could use:
+If you like, you can use the same logic to pick and choose a few things to export until it starts to work. Here we could use:
 
 ``` {r, eval = FALSE}
 clusterExport(cl, c("add_bang", "drop_vowels"))
 ```
 
-But you don't want to keep track of all the dependencies every time you write a new function. 
+But you don't want to keep track of all the dependencies every time you write a new function.
+
+## [Closure](http://adv-r.had.co.nz/Functional-programming.html#closures) to the rescue!
 
 Instead, you can use a closure to encapsulate the `add_bang` and `drop_vowels` functions inside the `mutate_names` function, so that `mutate_names` *always* has access to those functions without you passing them to every new child.
 
@@ -80,9 +83,29 @@ mutate_names_ <- function() {
 # you need, add_bang, drop_vowels
 mutate_names <- mutate_names_()
 
+# then start the cluster
 cl <- makeCluster(detectCores())
 bind_rows(parLapply(cl, split(babynames, babynames$year), mutate_names))
 stopCluster(cl)
 ```
 
 Done! Now your baby names are cooler in half the time!
+
+## More complex use case
+
+The real payoff comes when you write a function to perform the clustering, applying, stop clustering:
+
+``` {r eval = FALSE}
+parLapply_tbl <- function(.x, .f) {
+  cl <- makeCluster(detectCores())
+  tryCatch({
+    .x <- bind_rows(parLapply(cl, .x, .f))
+  }, finally = {
+    stopCluster(cl)   
+  })
+  .x
+}
+```
+In this case, you can't dynamically `clusterExport` things until you get it right without going with the full `parallelsugar` approach (passing everything, big and small). But the `closure` passes exactly what you need!
+
+(N.B. the `tryCatch` keeps you from hanging child processes out in the ether without any to kill them.)

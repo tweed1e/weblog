@@ -6,10 +6,37 @@
     <description>Recent content in Tags on Jesse Tweedle</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 18 Dec 2017 15:33:11 -0500</lastBuildDate>
+    <lastBuildDate>Sun, 17 Dec 2017 15:33:11 -0500</lastBuildDate>
     
 	<atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Babynames</title>
+      <link>/tags/babynames/</link>
+      <pubDate>Sun, 17 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/tags/babynames/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Closure</title>
+      <link>/tags/closure/</link>
+      <pubDate>Sun, 17 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/tags/closure/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Parallel Processing</title>
+      <link>/tags/parallel-processing/</link>
+      <pubDate>Sun, 17 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/tags/parallel-processing/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>Plot</title>
@@ -17,6 +44,15 @@
       <pubDate>Mon, 18 Dec 2017 15:33:11 -0500</pubDate>
       
       <guid>/tags/plot/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>R</title>
+      <link>/tags/r/</link>
+      <pubDate>Sun, 17 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/tags/r/</guid>
       <description></description>
     </item>
     
@@ -35,6 +71,15 @@
       <pubDate>Mon, 18 Dec 2017 15:33:11 -0500</pubDate>
       
       <guid>/tags/regression/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Windows</title>
+      <link>/tags/windows/</link>
+      <pubDate>Sun, 17 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/tags/windows/</guid>
       <description></description>
     </item>
     

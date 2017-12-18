@@ -1,24 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on Jesse Tweedle</title>
-    <link>/post/</link>
-    <description>Recent content in Posts on Jesse Tweedle</description>
+    <title>Babynames on Jesse Tweedle</title>
+    <link>/tags/babynames/</link>
+    <description>Recent content in Babynames on Jesse Tweedle</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 18 Dec 2017 15:33:11 -0500</lastBuildDate>
+    <lastBuildDate>Sun, 17 Dec 2017 15:33:11 -0500</lastBuildDate>
     
-	<atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="/tags/babynames/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>Do something with crime data</title>
-      <link>/post/2017-12-17-diversity/</link>
-      <pubDate>Mon, 18 Dec 2017 15:33:11 -0500</pubDate>
-      
-      <guid>/post/2017-12-17-diversity/</guid>
-      <description>Get some data and do something.</description>
-    </item>
     
     <item>
       <title>Closure hack for parallel processing on windows</title>
