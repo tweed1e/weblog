@@ -30,6 +30,33 @@
     </item>
     
     <item>
+      <title>Friends</title>
+      <link>/tags/friends/</link>
+      <pubDate>Mon, 18 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/tags/friends/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Functional Programming</title>
+      <link>/tags/functional-programming/</link>
+      <pubDate>Sun, 17 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/tags/functional-programming/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Imdb</title>
+      <link>/tags/imdb/</link>
+      <pubDate>Mon, 18 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/tags/imdb/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Parallel Processing</title>
       <link>/tags/parallel-processing/</link>
       <pubDate>Sun, 17 Dec 2017 15:33:11 -0500</pubDate>
@@ -39,38 +66,29 @@
     </item>
     
     <item>
-      <title>Plot</title>
-      <link>/tags/plot/</link>
-      <pubDate>Mon, 18 Dec 2017 15:33:11 -0500</pubDate>
-      
-      <guid>/tags/plot/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>R</title>
       <link>/tags/r/</link>
-      <pubDate>Sun, 17 Dec 2017 15:33:11 -0500</pubDate>
+      <pubDate>Mon, 18 Dec 2017 15:33:11 -0500</pubDate>
       
       <guid>/tags/r/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>R Markdown</title>
-      <link>/tags/r-markdown/</link>
+      <title>Rvest</title>
+      <link>/tags/rvest/</link>
       <pubDate>Mon, 18 Dec 2017 15:33:11 -0500</pubDate>
       
-      <guid>/tags/r-markdown/</guid>
+      <guid>/tags/rvest/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Regression</title>
-      <link>/tags/regression/</link>
+      <title>Tidytext</title>
+      <link>/tags/tidytext/</link>
       <pubDate>Mon, 18 Dec 2017 15:33:11 -0500</pubDate>
       
-      <guid>/tags/regression/</guid>
+      <guid>/tags/tidytext/</guid>
       <description></description>
     </item>
     

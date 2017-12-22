@@ -4,7 +4,7 @@ title: "Papers & Publications"
 
 ## **Publications**
 
-* "[Correlated shocks within firms](files/tweedle-correlated-shocks.pdf)". 2018. Economics Letters (forthcoming).
+* "[Correlated shocks within firms](https://www.sciencedirect.com/science/article/pii/S016517651730513X)". 2017. Economics Letters (forthcoming).
 
 * "[A Hotelling style model of spatial competition for a convenience good](https://link.springer.com/article/10.1007/s00168-011-0458-0)", with B. Curtis Eaton. 2012. The Annals of Regional Science, Vol. 49, Issue 2, pp. 447–469.
 

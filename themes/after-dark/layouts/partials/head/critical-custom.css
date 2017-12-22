@@ -195,3 +195,11 @@ XCode style (c) Angel Garcia <angelgarcia.mail@gmail.com>
 .hljs-emphasis {
   font-style: italic;
 }
+
+.hack h1 {
+  font-size: 1.2rem; font-family: Consolas;
+}
+
+.hack h2 {
+  font-size: 1.1rem; font-family: Consolas;
+}

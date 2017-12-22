@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Nlp on Jesse Tweedle</title>
+    <link>/tags/nlp/</link>
+    <description>Recent content in Nlp on Jesse Tweedle</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 18 Dec 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/nlp/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Friends episode titles, pt. 1</title>
+      <link>/post/friends-titles-pt1/</link>
+      <pubDate>Mon, 18 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/post/friends-titles-pt1/</guid>
+      <description>I always wanted to be a scriptwriter. But my approach to doing creative things is “find the secret, program it, retire”. So what’s the secret to a successful Friends episode? [Really, I want to write/experience a gentle introduction to the following things: rvest, tidytext, and language data science.]
+I’ll explore this data science via a workflow like:
+Get data via IMDB / rvest Explore—what am I looking for? Set up a model Draw conclusions Next steps  Get data I’ll get data on Friends episodes from IMDB via rvest (see here for tutorials and documentation).</description>
+    </item>
+    
+  </channel>
+</rss>

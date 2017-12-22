@@ -1,0 +1,264 @@
+---
+title: "rvest + imdb -> explore Friends episode titles"
+author: "Jesse Tweedle"
+date: 2017-12-18T15:33:11-05:00
+description: "This post includes R code to download Friends episode data from IMDB using the package rvest. It analyzes and visualizes episode data."
+tags: ["r", "friends", "imdb", "tidytext", "rvest"]
+categories: ["r"]
+---
+
+
+
+<p>I always wanted to be a scriptwriter. But my approach to doing creative things is “find the secret, program it, retire”. So what’s the secret to a successful Friends episode? [Really, I want to write/experience a gentle introduction to <code>rvest</code>, and later <code>tidytext</code> and language data science.]</p>
+<div id="get-data" class="section level2">
+<h2>Get data</h2>
+<p>I’ll get data on Friends episodes from IMDB via <code>rvest</code> (see here for <a href="https://github.com/hadley/rvest">tutorials</a> and <a href="https://cran.r-project.org/web/packages/rvest/rvest.pdf">documentation</a>).</p>
+<p>Start your engines:</p>
+<pre class="r"><code>library(tidyverse)
+library(rvest)
+library(skimr)
+library(ggplot2)
+library(ggrepel)
+library(tidytext)</code></pre>
+<p>First, find the link, and download some html. This takes some back and forth—I’ll do that annoying thing where I present the finished product as if I thought of it straight away. Suppose we have two functions:</p>
+<pre class="r"><code>get_ep_data &lt;- function(ep_url, url) {
+  # get season no., episode no., episode title, episode rating, no. of ratings
+  # director, and writers
+  # return the tibble of episode data
+}
+
+get_season_data &lt;- function(url) {
+  # ...
+  # return a tibble of data from all the episodes in a given season
+}</code></pre>
+<p>Given those functions (we’ll talk about them later), we only need to go through the list of episodes and download everything.</p>
+<pre class="r"><code># the base Friends url; it only needs a season number suffix
+url &lt;- &quot;http://www.imdb.com/title/tt0108778/episodes?season=&quot;
+
+# make a list of all the season urls (there are 10 seasons)
+season_urls &lt;- map_chr(1:10, function(n) {paste0(url, n)})
+
+# for each season in the list, download all the data and put it together 
+titles &lt;- season_urls %&gt;% map(get_season_data) %&gt;% bind_rows()</code></pre>
+</div>
+<div id="inspect-the-data" class="section level2">
+<h2>Inspect the data</h2>
+<p>The data includes season, episode, title, rating, number of ratings, director and writers (in list form, because there’s usually more than one writer, and sometimes multiple directors).</p>
+<pre class="r"><code>titles
+## # A tibble: 236 x 7
+##    season episode                                           title rating
+##     &lt;dbl&gt;   &lt;dbl&gt;                                           &lt;chr&gt;  &lt;dbl&gt;
+##  1      1       1           The One Where Monica Gets a Roommate     8.5
+##  2      1       2           The One with the Sonogram at the End     8.2
+##  3      1       3                         The One with the Thumb     8.3
+##  4      1       4             The One with George Stephanopoulos     8.3
+##  5      1       5 The One with the East German Laundry Detergent     8.6
+##  6      1       6                          The One with the Butt     8.3
+##  7      1       7                      The One with the Blackout     9.0
+##  8      1       8                  The One Where Nana Dies Twice     8.2
+##  9      1       9               The One Where Underdog Gets Away     8.3
+## 10      1      10                        The One with the Monkey     8.2
+## # ... with 226 more rows, and 3 more variables: n_ratings &lt;dbl&gt;,
+## #   director &lt;list&gt;, writers &lt;list&gt;</code></pre>
+<p>The rating distribution is skewed pretty high—the mean rating is 8.54, with a maximum of 9.7 and minimum of 7.4.</p>
+<div id="ratings-by-season" class="section level3">
+<h3>Ratings by season</h3>
+<p>Did Friends get better over time?</p>
+<pre class="r"><code>ggplot(titles, aes(x = factor(season), y = rating, group = season)) +
+  geom_boxplot() + ylim(NA, 10) +
+  labs(title = &quot;Friends Ratings By Season&quot;, x = &quot;Season #&quot;, y = &quot;Rating&quot;)</code></pre>
+<p><img src="/post/2017-12-18-rvest-friends-episodes_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Well, a bit—it peaks in Season 5 (✅), drops a bit in 9 (✅) and comes back for the final season. That checks out. It started good, hit its stride in the middle, started to lose steam around 8 and 9 (see the list of worst episodes ⬇️).</p>
+<p>So what are the best and worst episodes?</p>
+<pre class="r"><code># The best episodes
+titles %&gt;% arrange(-rating) %&gt;% head(5)
+## # A tibble: 5 x 7
+##   season episode                              title rating n_ratings
+##    &lt;dbl&gt;   &lt;dbl&gt;                              &lt;chr&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+## 1      5      14 The One Where Everybody Finds Out     9.7      5386
+## 2     10      18              The Last One: Part 2     9.7      7064
+## 3      4      12          The One with the Embryos     9.5      3979
+## 4     10      17              The Last One: Part 1     9.5      4311
+## 5      2      14       The One with the Prom Video     9.4      3750
+## # ... with 2 more variables: director &lt;list&gt;, writers &lt;list&gt;</code></pre>
+<p>‘Embryos’ is the ep where the winner of a quiz wins Monica and Rachel’s apartment. So good. ‘Everybody Finds Out’: it’s the one where Phoebe finds out about Monica/Chandler’s relationship; great ep (other than the Phoebe line I always hated “my eyes! my eyes!”). It’s also a great example of common knowledge and rational agents in game theory.</p>
+<p>One problem with titles: “The One with the Embryos” gives no information other than a noun that is related to babies. 😟 No character names and no indication of why I like it.</p>
+<pre class="r"><code># The worst episodes
+titles %&gt;% arrange(rating) %&gt;% head(5)
+## # A tibble: 5 x 7
+##   season episode                              title rating n_ratings
+##    &lt;dbl&gt;   &lt;dbl&gt;                              &lt;chr&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+## 1      4      21       The One with the Invitation     7.4      2154
+## 2      6      20 The One with Mac and C.H.E.E.S.E.     7.6      1982
+## 3      7      21             The One with the Vows     7.6      1837
+## 4      8      19     The One with Joey&#39;s Interview     7.6      1791
+## 5      9      10   The One with Christmas in Tulsa     7.7      1814
+## # ... with 2 more variables: director &lt;list&gt;, writers &lt;list&gt;</code></pre>
+<p>They’re all clip shows lmao. Ratings are accurate then.</p>
+</div>
+</div>
+<div id="are-the-directors-any-good" class="section level2">
+<h2>Are the directors any good?</h2>
+<p>I’m trying to write a good Friends script, who should I get to direct it? Here, we’ll just have to <code>unnest</code> the list-cols (because of one episode that has two directors, for some reason), and then group and summarize. I’ve already picked out a few directors to highlight with <a href="https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html"><code>geom_text_repel</code></a>.</p>
+<pre class="r"><code># Get a dataset of directors
+dirs &lt;- titles %&gt;% 
+  unnest(director) %&gt;%
+  group_by(director) %&gt;%
+  summarize(n = n(), rating = mean(rating))
+
+# A list of interesting people
+notable_dirs &lt;-c(&quot;Joe Regalbuto&quot;, 
+                 &quot;Peter Bonerz&quot;,
+                 &quot;David Schwimmer&quot;,
+                 &quot;Kevin Bright&quot;, 
+                 &quot;Gary Halvorson&quot;)
+
+# scatterplot of rating vs. number of episodes directed
+ggplot(dirs, aes(x = n, y = rating, colour = director %in% notable_dirs)) + 
+  geom_point() + 
+  geom_text_repel(aes(label = director)) +
+  labs(title = &quot;Directors: Avg. rating vs. No. of episodes&quot;,
+       x = &quot;No. of eps&quot;, y = &#39;Avg. rating&#39;) + 
+  theme(legend.position = &quot;none&quot;) + 
+  scale_colour_manual(values=c(&quot;black&quot;, &quot;#ce0411&quot;))</code></pre>
+<p><img src="/post/2017-12-18-rvest-friends-episodes_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>There aren’t many that stick out—we’d want Kevin Bright (of Bright/Kaufman/Crane), who has one of the highest average ratings and directed over 50 eps. Gary Halvorson’s done a lot, but he’s only an average Friends director.</p>
+<p>Also Peter Bonerz lolol. On the other hand: David Schwimmer directed like 10 episodes! I assume he directed all the ones about Ross:</p>
+<pre class="r"><code>titles %&gt;% 
+  unnest(director) %&gt;% 
+  filter(director == &quot;David Schwimmer&quot;)
+## # A tibble: 10 x 6
+##    season episode                                  title rating n_ratings
+##     &lt;dbl&gt;   &lt;dbl&gt;                                  &lt;chr&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+##  1      6       6             The One on the Last Night     8.6      1893
+##  2      7       4       The One with Rachel&#39;s Assistant     8.2      1843
+##  3      7       7      The One with Ross&#39;s Library Book     8.6      1877
+##  4      7       9            The One with All the Candy     8.3      1794
+##  5      7      16   The One with the Truth About London     8.7      1908
+##  6      8       2          The One with the Red Sweater     9.1      2252
+##  7      8       8             The One with the Stripper     8.9      2009
+##  8      8      12       The One Where Joey Dates Rachel     8.6      1860
+##  9      9       5 The One with Phoebe&#39;s Birthday Dinner     8.5      1792
+## 10     10       9         The One with the Birth Mother     8.6      1814
+## # ... with 1 more variables: director &lt;chr&gt;</code></pre>
+<p>Nope. I guess he did ok, mainly focusing on Seasons 7 and 8 and coming out with an average rating of 8.61, slightly higher than the series average of 8.54. Well. Fine. Ross still sucks.</p>
+</div>
+<div id="title-character-breakdown" class="section level2">
+<h2>Title character breakdown</h2>
+<p>I bet if I write an episode titled “The One Where Rachel [does X]” is an automatic classic. Let’s check. First, use <code>tidytext::unnest_tokens</code> to split the titles into words, and then take out common filler words (‘The’, ‘One’, ‘a’, etc.) with the quick and helpful <code>anti_join(stop_words)</code>.</p>
+<pre class="r"><code>title_words &lt;- titles %&gt;% 
+  select(-director, -writers) %&gt;% 
+  unnest_tokens(word, title) %&gt;% 
+  anti_join(stop_words)
+## Joining, by = &quot;word&quot;
+title_words
+## # A tibble: 431 x 5
+##    season episode rating n_ratings           word
+##     &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;          &lt;chr&gt;
+##  1      1       1    8.5      4317         monica
+##  2      1       1    8.5      4317       roommate
+##  3      1       2    8.2      3107       sonogram
+##  4      1       3    8.3      2900          thumb
+##  5      1       4    8.3      2810         george
+##  6      1       4    8.3      2810 stephanopoulos
+##  7      1       5    8.6      2768           east
+##  8      1       5    8.6      2768         german
+##  9      1       5    8.6      2768        laundry
+## 10      1       5    8.6      2768      detergent
+## # ... with 421 more rows</code></pre>
+<p>Now we’ll just count the number of times each word occurs in a title, and calculate the average rating for each word:</p>
+<pre class="r"><code>title_words %&gt;% 
+  filter(! word %in% c(&#39;1&#39;, &#39;2&#39;)) %&gt;% 
+  mutate(word = gsub(&quot;&#39;s&quot;, &quot;&quot;, word)) %&gt;% # to make &quot;Ross&quot; = &quot;Ross&#39;s&quot;
+  group_by(word) %&gt;% 
+  summarize(n = n(), rating = mean(rating) %&gt;% round(2)) %&gt;%
+  arrange(-n) %&gt;% head(6)
+## # A tibble: 6 x 3
+##       word     n rating
+##      &lt;chr&gt; &lt;int&gt;  &lt;dbl&gt;
+## 1   rachel    28   8.50
+## 2     ross    24   8.68
+## 3     joey    16   8.43
+## 4 chandler    11   8.66
+## 5   phoebe    10   8.35
+## 6   monica     9   8.52</code></pre>
+<p>The characters are the most frequent title words, and ‘Rachel’ (surprise, surprise) is No. 1. But episodes with ‘Ross’ in the title are actually rated slightly better!</p>
+<p>That gives us some info into explaining ratings: some directors are good, with a lot of noise. Some words are popular, but with a lot of noise. And don’t write a f—–g clip show. Next up, let’s use the titles and statistics to explain ratings!</p>
+</div>
+<div id="appendix-rvest" class="section level2">
+<h2>Appendix: <code>rvest</code></h2>
+<p>The toughest part of learning <code>rvest</code> is the lack of transparency in the returned objects. I find it difficult to navigate a page with <code>rvest</code> through trial-and-error because it’s hard to see inside the <code>xml_document</code> or <code>xml_nodeset</code> objects—but maybe there’s some <code>xml</code> stuff I don’t understand yet. Anyway, here’s what I found.</p>
+<p>First, explore the IMDB html / source. The Friends url is easy to find, and then we need a way to go from each season’s page (that lists the episodes) to each individual episode page (to get the data). Suppose we have the season url and one episode url, let’s write a function to get that episode’s data.</p>
+<p>We need: <code>html_session</code> to jump to different links, then read the html with <code>read_html</code> (good name). <a href="http://selectorgadget.com/"><code>selectorgadget</code></a> is a useful chrome extension to find CSS paths that select the objects you like, but I found it easier to just right-click + inspect element and find attributes that identify the things I want (usually <code>class</code> and <code>id</code>; though <code>itemprop</code> turns out to be super useful on these imdb pages).</p>
+<p>Here, I’m looking for episode title (inspect element suggests <code>div h1[itemprop=&quot;name&quot;])</code> would select the title (which I need to verify for this one, and then hope it works for the rest 🙏). Also rating (<code>span[itemprop=&quot;ratingValue&quot;]) and rating count (</code>span[itemprop=“ratingCount”]`).</p>
+<p>After that, we get lists of directors and writers from the cast table, and filter accordingly. Sometimes the writers are listed with credits “written by”, sometimes “writer”, or “teleplay by” or “story by” or whatever else they like to say.</p>
+<p>Finally, we stick them all in a tibble and return it. The writers and directors are returned in list-cols, so every episode gets one row.</p>
+<pre class="r"><code>get_ep_data &lt;- function(ep_url, url) {
+  # given a show url (for the session), 
+  # and an episode url (relative to the show url) 
+  # follow the link to the episode and download the episode data
+  # print(paste0(&quot;S:&quot;, stringr::str_extract(url, &quot;(\\d*)$&quot;), 
+  #              &quot; E:&quot;, stringr::str_extract(ep_url, &quot;(\\d*)$&quot;)))
+  # print(ep_url)
+  
+  # start a session and jump to the episode url
+  session &lt;- html_session(paste0(url)) %&gt;%  jump_to(ep_url)
+  
+  # then read the episode page.
+  page &lt;- session %&gt;% read_html()
+  
+  title &lt;- page %&gt;% 
+    html_nodes(&#39;div h1[itemprop=&quot;name&quot;]&#39;) %&gt;% 
+    html_text() %&gt;% trimws()
+  
+  rating &lt;- page %&gt;% 
+    html_nodes(&#39;span[itemprop=&quot;ratingValue&quot;]&#39;) %&gt;% 
+    html_text() %&gt;% as.numeric()
+  
+  n_ratings &lt;- page %&gt;% 
+    html_nodes(&#39;span[itemprop=&quot;ratingCount&quot;]&#39;) %&gt;% 
+    html_text() %&gt;% gsub(pattern = &quot;,&quot;, replacement = &quot;&quot;) %&gt;% as.numeric()
+  
+  # get writer / director info.
+  cast_table &lt;- session %&gt;% follow_link(i = &quot;See full cast &amp; crew&quot;) %&gt;%
+    html_nodes(&quot;.simpleCreditsTable&quot;) %&gt;% 
+    html_table()
+  
+  # the director is first in the list of tables.
+  director &lt;- cast_table %&gt;% .[[1]] %&gt;% .[,1] 
+  
+  # nope! sometimes it says &quot;teleplay by&quot; and &quot;story by&quot;. use those too.
+  # I think the writers are in the second table in the list of tables?
+  writers &lt;- cast_table %&gt;% .[[2]] %&gt;% 
+    filter(grepl(&quot;writer|written|teleplay|story&quot;, X3)) %&gt;%  .[,1]
+  
+  tibble(
+    season = stringr::str_extract(url, &quot;(\\d*)$&quot;) %&gt;% as.numeric(),
+    episode = stringr::str_extract(ep_url, &quot;(\\d*)$&quot;) %&gt;% as.numeric(), 
+    title = title, 
+    rating = rating, 
+    n_ratings = n_ratings, 
+    director = lst(director), 
+    writers = lst(writers)
+  )
+}</code></pre>
+<p>Once we have that episode data function, we can write a function to return season data (although you <em>know</em> I wrote this first just to download the season url and look for the episode titles).</p>
+<p>First, <code>read_html</code> the url. The episode titles can be found (via a quick inspect element) with the tags <code>strong a[itemprop=&quot;name&quot;]</code>; then ask for the <code>href</code>/link attribute via <code>html_attr</code>.</p>
+<p>This is my first experiment with <code>purrr::possibly</code>—since html sessions can do weird stuff (with this very detailed bug report: bad stuff happens sometimes), if getting the episode data fails for some reason, just forget about that episode for now.</p>
+<pre class="r"><code>get_season_data &lt;- function(url) {
+  # given the show url, download episode data for every episode in every season
+  
+  html &lt;- read_html(url)
+  
+  # get links to all episodes.
+  ep_list &lt;- html %&gt;% 
+    html_nodes(css = &#39;strong a[itemprop=&quot;name&quot;]&#39;) %&gt;%
+    html_attr(&#39;href&#39;)
+  
+  # for each episode in the list, safely get the data
+  safe_get_ep_data &lt;- possibly(get_ep_data, otherwise = NULL)
+  
+  # return a dataframe of all episode data
+  ep_list %&gt;% map(safe_get_ep_data, url = url) %&gt;% bind_rows() 
+}</code></pre>
+</div>

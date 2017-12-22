@@ -1,9 +1,11 @@
 ---
-title: "Closure hack for parallel processing on windows"
+title: "Functional programming #rstats: closure hack for parallel processing on windows!"
 author: "Jesse Tweedle"
 date: 2017-12-17T15:33:11-05:00
-categories: ["R"]
-tags: ["closure", "R", "Windows", "parallel processing", "babynames"]
+description: "This post describes a useful application of functional programming. Parallel processes on Windows don't have access to the global environment. Closures can encapsulate dependencies in the functions you pass, saving you from missing function errors."
+slug: rstats-closure-windows-parallel
+categories: ["r"]
+tags: ["closure", "r", "functional programming", "Windows", "parallel processing", "babynames"]
 ---
 
 
@@ -23,29 +25,25 @@ library(babynames)
 drop_vowels &lt;- function(text) {
   gsub(&quot;[aeiou]&quot;, &quot;&quot;, text) 
 }
-# a function that adds a exclamation mark at the end, just bc
-add_bang &lt;- function(text) {
-  paste0(text, &quot;!&quot;)
-}
 mutate_names &lt;- function(tbl) {
   # names are cooler with no vowels and no capital letters.
-  dplyr::mutate(tbl, name := add_bang(drop_vowels(tolower(name))))
+  dplyr::mutate(tbl, name := drop_vowels(tolower(name)))
 }
 
 mutate_names(babynames[1:10, ])
 ## # A tibble: 10 x 5
-##     year   sex   name     n       prop
-##    &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt; &lt;int&gt;      &lt;dbl&gt;
-##  1  1880     F   mry!  7065 0.07238433
-##  2  1880     F    nn!  2604 0.02667923
-##  3  1880     F    mm!  2003 0.02052170
-##  4  1880     F lzbth!  1939 0.01986599
-##  5  1880     F   mnn!  1746 0.01788861
-##  6  1880     F mrgrt!  1578 0.01616737
-##  7  1880     F     d!  1472 0.01508135
-##  8  1880     F    lc!  1414 0.01448711
-##  9  1880     F  brth!  1320 0.01352404
-## 10  1880     F   srh!  1288 0.01319618</code></pre>
+##     year   sex  name     n       prop
+##    &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;int&gt;      &lt;dbl&gt;
+##  1  1880     F   mry  7065 0.07238433
+##  2  1880     F    nn  2604 0.02667923
+##  3  1880     F    mm  2003 0.02052170
+##  4  1880     F lzbth  1939 0.01986599
+##  5  1880     F   mnn  1746 0.01788861
+##  6  1880     F mrgrt  1578 0.01616737
+##  7  1880     F     d  1472 0.01508135
+##  8  1880     F    lc  1414 0.01448711
+##  9  1880     F  brth  1320 0.01352404
+## 10  1880     F   srh  1288 0.01319618</code></pre>
 <p>But <code>babynames</code> has 1,858,689 rows! It may take a long time to process everything. So your first idea is to start parallel processes, split the data frame, <code>parLapply</code> the function to each table in the split list, then <code>bind_rows</code> them back together.</p>
 <pre class="r"><code>library(parallel)
 cl &lt;- makeCluster(detectCores())
@@ -53,26 +51,28 @@ bind_rows(parLapply(cl, split(babynames, babynames$year), mutate_names))
 stopCluster(cl)
 ## Error in checkForRemoteErrors(val) : 
 ##    2 nodes produced errors; first error: 
-##    Evaluation error: could not find function &quot;add_bang&quot;. </code></pre>
+##    Evaluation error: could not find function &quot;drop_vowels&quot;. </code></pre>
 <p>On Mac, you can choose between <code>parLapply</code> and <code>mclapply</code>, but on Windows you only have <code>parLapply</code>. <code>parLapply</code> creates processes that don’t have access to the global environment (see this Stack Overflow Q for technical details on <a href="https://stackoverflow.com/questions/17196261/understanding-the-differences-between-mclapply-and-parlapply-in-r">parallel processing on Windows vs Mac</a>), so <code>add_bang</code> isn’t passed to the clusters that are trying to run <code>mutate_names</code>. They don’t know anything other than what you give them (they also don’t know where to find <code>mutate</code> unless you use <code>dplyr::mutate</code> or <code>library(dplyr)</code> inside the function). (Even then, if your libraries aren’t on the search path, you can’t find them no matter what, but I haven’t solved that problem yet.)</p>
 <p>One option is to use <code>parallelsugar</code> (via <a href="https://github.com/nathanvan/parallelsugar">nathanvan</a>), which approximates the <code>mclapply</code> function on Mac that has access to the global environment. <code>parallelsugar</code> works by using <code>parallel::clusterExport</code> to export objects to the child processes. However, if your data frame is large (or if you have other large things in the global environment, or lots of unrelated packages), it can take forever to set up the clusters.</p>
 <p>If you like, you can use the same logic to pick and choose a few things to export until it starts to work. Here we could use:</p>
-<pre class="r"><code>clusterExport(cl, c(&quot;add_bang&quot;, &quot;drop_vowels&quot;))</code></pre>
-<p>But you don’t want to keep track of all the dependencies every time you write a new function.</p>
+<pre class="r"><code># start the cluster here
+clusterExport(cl, &quot;drop_vowels&quot;)
+# call parLapply
+# stop cluster</code></pre>
+<p>But you don’t want to keep track of all the dependencies every time you write a new function, and you <em>can’t</em> do it when you write a wrapper to <code>parLapply</code> that takes a function like <code>mutate_names</code> as an input (because the wrapper function won’t know what the argument function depends on).</p>
 </div>
 <div id="closure-to-the-rescue" class="section level2">
 <h2><a href="http://adv-r.had.co.nz/Functional-programming.html#closures">Closure</a> to the rescue!</h2>
-<p>Instead, you can use a closure to encapsulate the <code>add_bang</code> and <code>drop_vowels</code> functions inside the <code>mutate_names</code> function, so that <code>mutate_names</code> <em>always</em> has access to those functions without you passing them to every new child.</p>
+<p>Instead, you can use a closure to encapsulate <code>drop_vowels</code> function inside the <code>mutate_names</code> function, so that <code>mutate_names</code> <em>always</em> has access to that function without you passing it to every new child.</p>
 <pre class="r"><code># this returns a function! 
 mutate_names_ &lt;- function() { 
-  # &quot;save&quot; these functions from the global environment 
+  # &quot;save&quot; the `drop_vowels` from the global environment 
   # into this function&#39;s environment,
   # which then gets passed to each child process
-  add_bang &lt;- add_bang
   drop_vowels &lt;- drop_vowels
   function(tbl) {
     # names are cooler with no vowels and no capital letters.
-    dplyr::mutate(tbl, name := tolower(add_bang(drop_vowels(name))))
+    dplyr::mutate(tbl, name = drop_vowels(tolower(name)))
   }
 }
 
@@ -89,9 +89,14 @@ stopCluster(cl)</code></pre>
 </div>
 <div id="more-complex-use-case" class="section level2">
 <h2>More complex use case</h2>
-<p>The real payoff comes when you write a function to perform the clustering, applying, stop clustering:</p>
+<p>The real payoff comes when you write a function to perform the clustering steps together:</p>
 <pre class="r"><code>parLapply_tbl &lt;- function(.x, .f) {
-  cl &lt;- makeCluster(detectCores())
+  # randomly split the tbl into parts
+  n_cl &lt;- detectCores()
+  .x &lt;- split(.x, sample.int(n_cl, nrow(.x), replace = TRUE)) 
+  
+  # then cluster apply things on that list of split tbls
+  cl &lt;- makeCluster(n_cl)
   tryCatch({
     .x &lt;- bind_rows(parLapply(cl, .x, .f))
   }, finally = {
@@ -99,6 +104,6 @@ stopCluster(cl)</code></pre>
   })
   .x
 }</code></pre>
-<p>In this case, you can’t dynamically <code>clusterExport</code> things until you get it right without going with the full <code>parallelsugar</code> approach (passing everything, big and small). But the <code>closure</code> passes exactly what you need!</p>
-<p>(N.B. the <code>tryCatch</code> keeps you from hanging child processes out in the ether without any to kill them.)</p>
+<p>In this case, you can’t dynamically <code>clusterExport</code> things until you get it right without going with the full <code>parallelsugar</code> approach (passing everything in <code>globalenv</code>, big and small). But the <code>closure</code> passes exactly what you need!</p>
+<p>(N.B. the <code>tryCatch</code> keeps you from hanging child processes without any to kill them.)</p>
 </div>

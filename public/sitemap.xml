@@ -3,12 +3,12 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>/post/2017-12-17-diversity/</loc>
+    <loc>/post/2017-12-18-rvest-friends-episodes/</loc>
     <lastmod>2017-12-18T15:33:11-05:00</lastmod>
   </url>
   
   <url>
-    <loc>/post/2017-12-16-closure-windows-parallel/</loc>
+    <loc>/post/rstats-closure-windows-parallel/</loc>
     <lastmod>2017-12-17T15:33:11-05:00</lastmod>
   </url>
   
@@ -30,6 +30,24 @@
   </url>
   
   <url>
+    <loc>/tags/friends/</loc>
+    <lastmod>2017-12-18T15:33:11-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/functional-programming/</loc>
+    <lastmod>2017-12-17T15:33:11-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/imdb/</loc>
+    <lastmod>2017-12-18T15:33:11-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>/</loc>
     <lastmod>2017-12-18T15:33:11-05:00</lastmod>
     <priority>0</priority>
@@ -46,20 +64,8 @@
   </url>
   
   <url>
-    <loc>/tags/plot/</loc>
-    <lastmod>2017-12-18T15:33:11-05:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>/post/</loc>
     <lastmod>2017-12-18T15:33:11-05:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>/tags/r/</loc>
-    <lastmod>2017-12-17T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -70,13 +76,13 @@
   </url>
   
   <url>
-    <loc>/tags/r-markdown/</loc>
+    <loc>/tags/r/</loc>
     <lastmod>2017-12-18T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>/tags/regression/</loc>
+    <loc>/tags/rvest/</loc>
     <lastmod>2017-12-18T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
@@ -84,6 +90,12 @@
   <url>
     <loc>/tags/</loc>
     <lastmod>2017-12-17T15:33:11-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/tidytext/</loc>
+    <lastmod>2017-12-18T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   

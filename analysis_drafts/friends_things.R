@@ -19,7 +19,7 @@
 # and I want to show mistakes / data cleaning issues as they come up.
 
 library(rvest)
-library(XML) # why?
+# library(XML) # why?
 library(tidyverse)
 library(tidytext)
 
@@ -46,43 +46,47 @@ pages <- map(urls, read_html)
 #   enframe() %>% filter(value != "Rate") %>% mutate(value = as.numeric(value)) %>% filter(value - 1 != lag(value) ) %>% filter(value>0)
 # ugh, 23.
 
-# stars <- 
-  pages %>% 
+stars <- pages %>% 
   map(html_nodes, css = '.ipl-rating-star__rating')%>% 
   map(html_text) %>% 
   enframe() %>%
   unnest() %>% 
-  group_by()
-    
-      mutate(value = map(value, value != "Rate"))
+  # filter(value != "Rate") %>% 
+  group_by(name) %>% 
+  filter(row_number() %in% seq.int(1, max(row_number()), by = 23)) 
 
-  # function that returns...ugh. or group_by
-  
-# ugh, finally. now do this to every one.
-stars %>% filter(name %in% seq.int(1, max(name), by = 23))
+stars <- stars[-c(nrow(stars)-1, nrow(stars)), ]
+# am I missing two? the last two titles are: "The Last One: Part N"
+# Drop em.
 
+stars <- stars %>% 
+  mutate(episode = row_number()) %>%
+  select(season = name, episode, rating = value)
+inner_join(titles, stars) # yea, great.
 
-  
-pages %>% 
-  map(html_nodes, css = '.ipl-rating-star__rating') %>% .[[1]] %>% 
-  html_text() %>% 
-  enframe() %>% View()
+# predict some shit.
+
+# full_join(titles, stars)
+# pages %>% 
+#   map(html_nodes, css = '.ipl-rating-star__rating') %>% .[[1]] %>% 
+#   html_text() %>% 
+#   enframe() %>% View()
 
 # %>% 
 #   filter(grepl("[0-9]\\.[0-9]", value))
 
 # some are only one number. ugh.  
 
-pages %>% 
-  map(html_nodes, css = '.ipl-rating-widget') %>% 
-  .[[1]]  %>% html_children() %>% `[[`(1) 
+# pages %>% 
+#   map(html_nodes, css = '.ipl-rating-widget') %>% 
+#   .[[1]]  %>% html_children() %>% `[[`(1) 
 # ok, get .ipl-rating-star__rating  and
 # .ipl-rating-star__total-votes
 # and 
 
-pages %>% 
-  map(html_nodes, css = 'div div') %>% 
-  .[[1]]  %>% `[[`(4)
+# pages %>% 
+#   map(html_nodes, css = 'div div') %>% 
+#   .[[1]]  %>% `[[`(4)
   # html_nodes(css = 'div span')
 
 # %>% 
