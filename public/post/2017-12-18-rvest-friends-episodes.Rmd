@@ -157,7 +157,7 @@ Nope. I guess he did ok, mainly focusing on Seasons 7 and 8 and coming out with 
 
 ## Title character breakdown
 
-I bet if I write an episode titled "The One Where Rachel [does X]" is an automatic classic. Let's check. First, use `tidytext::unnest_tokens` to split the titles into words, and then take out common filler words ('The', 'One', 'a', etc.) with the quick and helpful `anti_join(stop_words)`.
+I bet if I write an episode titled "The One Where Rachel [does X]" it'll be an automatic classic. Let's check. First, use `tidytext::unnest_tokens` to split the titles into words, and then take out common filler words ('The', 'One', 'a', etc.) with the quick and helpful `anti_join(stop_words)`.
 
 ``` {r}
 title_words <- titles %>% 
@@ -174,7 +174,7 @@ title_words %>%
   filter(! word %in% c('1', '2')) %>% 
   mutate(word = gsub("'s", "", word)) %>% # to make "Ross" = "Ross's"
   group_by(word) %>% 
-  summarize(n = n(), rating = mean(rating) %>% round(2)) %>%
+  summarize(n = n(), rating = rating %>% mean() %>% round(2)) %>%
   arrange(-n) %>% head(6)
 ```
 

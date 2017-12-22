@@ -407,7 +407,7 @@ XCode style (c) Angel Garcia <angelgarcia.mail@gmail.com>
 
 <meta itemprop="datePublished" content="2017-12-18T15:33:11-05:00" />
 <meta itemprop="dateModified" content="2017-12-18T15:33:11-05:00" />
-<meta itemprop="wordCount" content="2221">
+<meta itemprop="wordCount" content="2224">
 
 
 
@@ -572,7 +572,7 @@ ggplot(dirs, aes(x = n, y = rating, colour = director %in% notable_dirs)) +
 </div>
 <div id="title-character-breakdown" class="section level2">
 <h2>Title character breakdown</h2>
-<p>I bet if I write an episode titled “The One Where Rachel [does X]” is an automatic classic. Let’s check. First, use <code>tidytext::unnest_tokens</code> to split the titles into words, and then take out common filler words (‘The’, ‘One’, ‘a’, etc.) with the quick and helpful <code>anti_join(stop_words)</code>.</p>
+<p>I bet if I write an episode titled “The One Where Rachel [does X]” it’ll be an automatic classic. Let’s check. First, use <code>tidytext::unnest_tokens</code> to split the titles into words, and then take out common filler words (‘The’, ‘One’, ‘a’, etc.) with the quick and helpful <code>anti_join(stop_words)</code>.</p>
 <pre class="r"><code>title_words &lt;- titles %&gt;% 
   select(-director, -writers) %&gt;% 
   unnest_tokens(word, title) %&gt;% 
@@ -598,7 +598,7 @@ title_words
   filter(! word %in% c(&#39;1&#39;, &#39;2&#39;)) %&gt;% 
   mutate(word = gsub(&quot;&#39;s&quot;, &quot;&quot;, word)) %&gt;% # to make &quot;Ross&quot; = &quot;Ross&#39;s&quot;
   group_by(word) %&gt;% 
-  summarize(n = n(), rating = mean(rating) %&gt;% round(2)) %&gt;%
+  summarize(n = n(), rating = rating %&gt;% mean() %&gt;% round(2)) %&gt;%
   arrange(-n) %&gt;% head(6)
 ## # A tibble: 6 x 3
 ##       word     n rating
@@ -710,7 +710,7 @@ title_words
   
     and tagged <a href="/tags/friends/">friends</a>, <a href="/tags/imdb/">imdb</a>, <a href="/tags/r/">r</a>, <a href="/tags/rvest/">rvest</a> and <a href="/tags/tidytext/">tidytext</a>
   
-  using <span itemprop="wordCount">2221</span> words.
+  using <span itemprop="wordCount">2224</span> words.
 </p>
 
       
