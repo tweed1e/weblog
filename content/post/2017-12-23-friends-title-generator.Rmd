@@ -1,0 +1,96 @@
+---
+title: "Friends Title Generator, Part 1"
+author: "Jesse Tweedle"
+date: 2017-12-24T15:33:11-05:00
+description: "This post includes a R code script to generate Friends episode titles."
+tags: ["r", "friends", "tidytext", "nlp", "markov model"]
+categories: ["r", "friends"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+library(tidyverse)
+library(tidytext)
+# library(werfriends)
+```
+
+To fulfill my lifelong desire to write Friends scripts, I'll start by writing a Friends episode title. By that I mean a script that writes a Friends episode title. If you're like me, you want to be creative, but I want to study artists and writers and distill their creativity into a recipe, and then just repeat it over and over. Isn't that how artistic success works? 
+
+Start with episode data from the first [Friends post](2017-12-18-rvest-friends-episodes.html). We `rvest`ed a bunch of stuff from the [Friends IMDB](http://www.imdb.com/title/tt0108778/).
+
+``` {r}
+titles <- werfriends::friends_episodes %>% as_tibble() %>%
+  select(-director, -writers)
+titles
+```
+
+## Check out the words
+
+Apply the easy `tidytext` function `unnest_tokens` to process the titles, then remove the filler words by applying `anti_join` on the `tidytext` dataset `stop_words`.
+
+``` {r}
+title_words <- titles %>% 
+  unnest_tokens(word, title) %>% 
+  anti_join(stop_words)
+
+# replace 'rachel's' with 'rachel'
+title_words %>% 
+  mutate(word = gsub(pattern = "'s", replacement = "", x = word)) %>% 
+  count(word, sort = TRUE)
+```
+
+Now we know the most important thing. Although character names don't seem to have an [effect on episode success](2017-12-18-post-selection-inference-on-friends-titles-in-r.html),they're obviously the most popular title words. On the other hand, I suppose people get married and people die pretty often in a sitcom. 
+
+``` {r}
+# ok, now we know what's important
+# the characters, weddings, people and things dying.
+titles %>% filter(grepl("dies", title, ignore.case = TRUE))
+```
+
+Dang, ok. 3 old people, old yeller, Joey's DOOL character, and JOEY'S CHAIR ROSITA.
+
+## Strategy
+
+A sentence is a sequence of words. Given a word, e.g., "One", there is a probability that the next word in the sequence is "Where" (pretty high actually), and slightly different probabilities for all the other words ("With" is also very high). Thinking this way, we think of the sentence generator as a network. Each vertex is a word in the set of titles. A directed edge exists if the word pair `(word, next)` exists in the set of titles. The edge weight is the frequency of times `next` is the word that follows `word` in all the titles.
+
+``` {r}
+word_transitions <- titles %>% 
+  unnest_tokens(word, title) %>% 
+  group_by(season, episode) %>% 
+  filter(row_number() > 1) %>% 
+  mutate(nxt = lead(word), 
+         nxt = ifelse(is.na(nxt), "EOL", nxt)) %>% 
+  group_by(word, nxt) %>% 
+  count() %>% 
+  group_by(word) %>% 
+  mutate(weight = n / sum(n))
+```
+
+I find `dplyr` makes it super easy to get a solution right away; here, you can almost code as fast as you think (take `titles`, convert it to words, drop the first word, make a new variable representing the 'next word', calculate the frequency the next word appears given each current word). On the other hand, it's a bit difficult to follow after the fact, maybe because you write it so quickly that you forget to document it. Also the constant `group_by` and `ungroup`ing. `r emo::ji('expressionless')`.
+
+So, now we have a tidy matrix of word transition probabilities. All we have to do is start with the words "the one", and calculate the next word in the sequence (by using the great `sample_n` to pick the next word in the title). Then keep going until you hit the end of the sentence ('EOL').
+
+``` {r}
+generate_title <- function() {
+  new_title <- c("the", "one")
+  while(new_title[length(new_title)] != "EOL") {
+    new_title <- c(new_title, 
+                   word_transitions %>% 
+                     filter(word == new_title[length(new_title)]) %>% 
+                     sample_n(size = 1, weight = weight) %>% 
+                     pull(nxt))
+  }
+  new_title[-length(new_title)] %>% paste(collapse = " ") %>% stringr::str_to_title()
+}
+generate_title()
+```
+
+Yeaaa! Here's a few more:
+
+``` {r}
+replicate(5, generate_title())
+```
+
+Problem: since this is based on only `r nrow(titles)` titles, it tends to generate titles that already exist. E.g., there is only one time the word 'George' shows up in a title, so anytime the title generator hits 'The One With George', the next word will always be 'Stephanopolous', and then it will always end.
+
+We can try to fix this in the next installment, by using the `tidytext::parts_of_speech` dataset to generate sentence structures and then populate them with words, e.g., `"the one where [noun] [verb]"`.

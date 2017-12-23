@@ -1,39 +1,16 @@
 library(tidyverse)
 library(tidytext)
 
+# todo: focus on generation.
+# fix Vegas problem.
 
 
 titles <- werfriends::friends_episodes %>% select(-director, -writers)
 
 # overall
-title_words <- titles %>% unnest_tokens(word, title) #%>% anti_join(stop_words) # except where/with/etc. 
+title_words <- titles %>% unnest_tokens(word, title) %>% anti_join(stop_words) # except where/with/etc. 
 
-title_words %>% count(word, sort = TRUE)
-
-# part 1, 2?
-# figure that out.
-# titles %>% filter(grepl("[0-9]", title))
-# ok. hmm. decision: leave it for now. but note: lots of season finales
-
-# seasons that end with two-parters
-# titles %>% 
-#   group_by(season) %>% 
-#   filter(episode == max(episode)) %>%
-#   filter(grepl("Part 2", title)) %>% 
-#   pull(season)
-
-# note: switching the two filters gives the wrong answer,
-# bc filtering for 'Part 2' first changes the logic for `max()`
-# titles %>% 
-#   filter(grepl("Part 2", title)) %>% 
-#   filter(episode == max(episode)) %>%
-#   pull(season)
-
-# but you can combine them with `&`
-# titles %>% 
-#   filter(grepl("Part 2", title) & episode == max(episode)) %>%
-#   pull(season)
-
+# title_words %>% count(word, sort = TRUE)
 
 # also rachel, rachel's, etc.
 title_words %>% mutate(word = gsub(pattern = "'s", replacement = "", x = word)) %>% count(word, sort = TRUE)
@@ -42,36 +19,18 @@ title_words %>% mutate(word = gsub(pattern = "'s", replacement = "", x = word)) 
 titles %>% filter(grepl("dies", title, ignore.case = TRUE))
 # dang, ok. old yeller and 5 old people. whoops, 4 old people, old yeller and JOEY'S CHAIR
 
-# well, they all start with "The One"
-# but the third word changes.
-# titles %>% mutate(third = strsplit(title, " ")[[1]][[3]]) %>% glimpse()
-
 # that didn't work. why? ugh. maybe the groups give it trouble?
-titles %>% group_by(season, episode) %>% mutate(third = strsplit(title, " ")[[1]][[3]]) %>% glimpse() 
+# titles %>% group_by(season, episode) %>% mutate(third = strsplit(title, " ")[[1]][[3]]) %>% glimpse()
 # yeah, I guess group_by can fix that. can get the same thing by grouping by title.
 
-titles %>% 
-  group_by(season, episode) %>% 
-  mutate(third = strsplit(title, " ")[[1]][[3]] %>% tolower()) %>% 
-  ungroup() %>% 
-  count(third, sort = TRUE)
-
-# ok, mainly with. 
-# notice "hundredth" and "one:"
-
-# is there a season component?
 # titles %>% 
 #   group_by(season, episode) %>% 
 #   mutate(third = strsplit(title, " ")[[1]][[3]] %>% tolower()) %>% 
-#   group_by(season) %>% 
+#   ungroup() %>% 
 #   count(third, sort = TRUE)
 
-# verbs, nouns, etc?
-
-# medium term thing: also get ratings, try to predict ratings given titles?
-# that's some NLP stuff. features are important.
-# characters, obviously
-# writers maybe more important but whatever.
+# ok, mainly with. 
+# notice "hundredth" and "one:"
 
 # so how to generate a sentence?
 # markov model.
@@ -103,24 +62,25 @@ pos %>% ungroup() %>% count(pos)
 
 # so, how to get "edges"? or translate things already
 # go back to original, put stop words back in
-titles %>% 
-  unnest_tokens(word, title) %>% 
-  group_by(season, episode) %>% 
-  mutate(lineno = row_number()) %>% 
-  mutate(word_ = gsub(pattern = "'s", replacement = "", x = word)) %>% 
-  left_join(parts_of_speech, by = c("word_" = "word"))
+# titles %>% 
+#   unnest_tokens(word, title) %>% 
+#   group_by(season, episode) %>% 
+#   mutate(lineno = row_number()) %>% 
+#   mutate(word_ = gsub(pattern = "'s", replacement = "", x = word)) %>% 
+#   left_join(parts_of_speech, by = c("word_" = "word"))
 # hmm. that's tough. now I need to pick.
 
 # what's bad?
-titles %>% 
-  unnest_tokens(word, title) %>% 
-  group_by(season, episode) %>% 
-  mutate(lineno = row_number()) %>% 
-  mutate(word_ = gsub(pattern = "'s", replacement = "", x = word)) %>% 
-  left_join(parts_of_speech, by = c("word_" = "word")) %>% group_by(word_, pos) %>% 
-  slice(1) %>% ungroup() %>% count(word_, sort = TRUE) %>% filter(n>1) %>% nrow()
+# titles %>% 
+#   unnest_tokens(word, title) %>% 
+#   group_by(season, episode) %>% 
+#   mutate(lineno = row_number()) %>% 
+#   mutate(word_ = gsub(pattern = "'s", replacement = "", x = word)) %>% 
+#   left_join(parts_of_speech, by = c("word_" = "word")) %>% group_by(word_, pos) %>% 
+#   slice(1) %>% ungroup() %>% count(word_, sort = TRUE) %>% filter(n>1) %>% nrow()
 # ugh. 158 choices to make. 
 # don't know what to do.
+
 # ok. strategy? use tf-idf to pick what's the best one to use.
 
 # which means. for each thing.
@@ -139,7 +99,7 @@ pos_ <- pos_ %>% group_by(word) %>% filter(tf_idf == max(tf_idf)) %>% select(-(n
 # pos_ %>% group_by(word) %>% count(sort = TRUE)
 # xxx
 # so it's probably a definite article. use that rule, change in some cases. e.g.:
-titles %>% filter(grepl("like", title, ignore.case = TRUE)) # dang, it's really a verb here.
+# titles %>% filter(grepl("like", title, ignore.case = TRUE)) # dang, it's really a verb here.
 
 # ok, try to merge parts of speech again.
 titles_ <- titles %>% 
@@ -171,14 +131,22 @@ titles_pos_fin <- titles_pos %>%
   summarise(title = paste(word_, collapse = " "),
             pos = paste(pos, collapse = " "))
 
-# hahaha. alright cool.
+
+titles_pos_fin %>% ungroup() %>% select(title, pos) %>% mutate(pos = gsub("intransitive", "i", pos),
+                                                               pos = gsub("transitive", "i", pos),
+                                                               pos = gsub("definitearticle", "def-art", pos),
+                                                               pos = gsub("usuparticiple", "usu", pos),
+                                                               pos = gsub("preposition", "prep", pos))
+
+
+
 titles_pos_fin %>% group_by(pos) %>% count(sort = TRUE)
 
 # ok, now we're getting somewhere.
 
 # now go to edges.
 # use lag?
-library(igraph)
+# library(igraph)
 graph <- titles_pos %>%
   select(-word) %>% 
   mutate(pos = ifelse(lineno <= 3, word_, pos), 
@@ -222,6 +190,30 @@ q %>%
   summarize(title = paste(word, collapse = " ") %>% stringr::str_to_title()) %>% 
   pull(title)
 
+
+generate_title <- function() {
+  new_title <- c("the")
+  while( new_title[length(new_title)] != "EOL") {
+    new_title <- c(new_title, 
+                   g %>% 
+                     filter(word == new_title[length(new_title)]) %>% 
+                     sample_n(size = 1, weight = weight) %>% 
+                     pull(nxt))
+  }
+  new_title
+  # then, use pos data to draw those at random?
+  
+  q <- new_title %>% enframe()
+  q %>% 
+    left_join(titles_pos %>% ungroup() %>% count(word_, pos) %>% mutate(weight = n / sum(n)), by = c("value" = "pos")) %>% 
+    mutate(weight = ifelse(is.na(weight), 1, weight)) %>% 
+    group_by(name) %>% sample_n(size = 1, weight = weight) %>% 
+    mutate(word = ifelse(is.na(word_), value, word_)) %>% 
+    filter(word != "EOL") %>% ungroup() %>% 
+    summarize(title = paste(word, collapse = " ") %>% stringr::str_to_title()) %>% 
+    pull(title)
+}
+generate_title() %>% print() %>% rsay::speak(voice = 'Tessa')
 # "The One With The Joey Rachel Nap"
 # "The One With The Wedding Doesn't Dies" # e.g., here, it thinks 'doesn't' is a noun, bc I guessed at most of the NA ones.
 # "The One With The Male Rachel"
