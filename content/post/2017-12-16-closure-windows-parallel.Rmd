@@ -11,6 +11,8 @@ tags: ["closure", "r", "functional programming", "Windows", "parallel processing
 knitr::opts_chunk$set(collapse = TRUE)
 ```
 
+![Rachel explains closure.](/images/closure.gif).
+
 ## Your situation: 
 
 * you have a big data frame

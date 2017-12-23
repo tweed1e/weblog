@@ -9,6 +9,10 @@
     <h1>{{ .Title }}</h1>
   </header>
   {{ .Content }}
+    <footer>
+      <hr>
+      {{ partial "cv/byline.html" . }}
+    </footer>
 {{ end }}
 {{ define "footer" }}
   {{ partial "powered-by.html" . }}

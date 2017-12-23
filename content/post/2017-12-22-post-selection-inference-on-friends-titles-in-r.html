@@ -117,18 +117,18 @@ c &lt;- cv.glmnet(ep_mm, episodes$rating, penalty.factor = penalty.factor) %&gt;
 lasso &lt;- tibble(term = names(c), estimate = c)
 lasso
 ## # A tibble: 236 x 2
-##         term    estimate
-##        &lt;chr&gt;       &lt;dbl&gt;
-##  1 chandler1  0.11514080
-##  2     joey1 -0.05246264
-##  3   monica1 -0.03873036
-##  4   phoebe1 -0.15151888
-##  5   rachel1 -0.04703851
-##  6     ross1  0.19249697
-##  7   season2  0.00000000
-##  8   season3  0.00000000
-##  9   season4  0.00000000
-## 10   season5  0.05653312
+##         term      estimate
+##        &lt;chr&gt;         &lt;dbl&gt;
+##  1 chandler1  0.1176019972
+##  2     joey1 -0.0471344876
+##  3   monica1 -0.0344661784
+##  4   phoebe1 -0.1441493845
+##  5   rachel1 -0.0431721298
+##  6     ross1  0.1990786702
+##  7   season2  0.0000000000
+##  8   season3 -0.0001827438
+##  9   season4  0.0006538244
+## 10   season5  0.0597535505
 ## # ... with 226 more rows</code></pre>
 </div>
 <div id="do-post-selection-estimation" class="section level3">
@@ -213,6 +213,6 @@ coefs %&gt;%
 <p><img src="/post/2017-12-22-post-selection-inference-on-friends-titles-in-r_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 <p>The naive linear model (significantly) says Joey sucks! If Joey’s in an episode, the episode is typically 0.19 stars lower! Phoebe also sucks, but not with such certainty. The naive linear model is also pretty sure none of the other characters matter.</p>
 <p>The naive LASSO model reverses that: Joey doesn’t matter as much; but Phoebe still sucks and Ross is now great! (NB: you know that’s not true, Ross is trash.)</p>
-<p>Ok, I was wrong, the post-selection procedure thinks Ross is great. Most of the other characters’ estimates are closer to zero, and much different than the naive linear model. Phoebe looks especially vindicated by the post-selection model. (The error bars really drive home the uncertainty, thanks to the tips in the <a href="http://ggplot2.tidyverse.org/reference/position_dodge.html">ggplot2 docs</a> I found while trying to figure out <code>position = 'dodge'</code> in the <code>goem_col</code>s.)</p>
+<p>Ok, I was wrong, the post-selection procedure thinks Ross is great. Most of the other characters’ estimates are closer to zero, and much different than the naive linear model. Phoebe looks especially vindicated by the post-selection model. (The error bars really drive home the uncertainty, thanks to the tips in the <a href="http://ggplot2.tidyverse.org/reference/position_dodge.html">ggplot2 docs</a> I found while trying to figure out <code>position = 'dodge'</code> in the <code>goem_col</code>s.) Of course we’re not dealing with a sample of Friends eps, so it’s hard to say what the standard errors are supposd to represent, really. But that’s a subject for another time.</p>
 <p>What does that mean for us? I thought character names would matter (e.g., ‘Rachel’ episodes would be rated higher), they don’t, and post-selection inference seems robust. So when I write my Friends episodes, I don’t have to care too much about putting characters in the titles, other than Ross, and I’m defo not writing a Ross episode. Or maybe I’ll write “The One without Ross”.</p>
 </div>

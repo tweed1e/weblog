@@ -1,32 +1,35 @@
 ---
 title: "Jesse Tweedle" 
+author: "Jesse Tweedle"
+date: '2017-12-23'
+description: 'An econometrics / data science curriculum vitae / resume. PhD, etc.'
 ---
 
-Econometrics + data science. [pdf version](files/tweedle_cv.pdf).
+:nerd_face: Econometrics + data science.  [See full version](/files/tweedle_cv.pdf).
 
 ----
 
-## Employment
+## Employment :money_with_wings:
 
 Research Economist --- Statistics Canada, 2014--Current
 
-## Education
+## Education :school_satchel:
 
 PhD, Economics --- University of Calgary, 2018 (expected)
 
-## Publications
+## Publications :blue_book:
 
-* "[Correlated shocks within firms](https://www.sciencedirect.com/science/article/pii/S016517651730513X)". Economics Letters, Volume 163, February 2018, Pages 95--97.
+* "[Correlated shocks within firms](https://www.sciencedirect.com/science/article/pii/S016517651730513X)". _Economics Letters_, Volume 163, February 2018, Pages 95--97.
 
-* "[A Hotelling style model of spatial competition for a convenience good](https://link.springer.com/article/10.1007/s00168-011-0458-0)", with B. Curtis Eaton. 2012. The Annals of Regional Science, Vol. 49, Issue 2, 2012, pp. 447--469.
+* "[A Hotelling style model of spatial competition for a convenience good](https://link.springer.com/article/10.1007/s00168-011-0458-0)", with B. Curtis Eaton. 2012. *The Annals of Regional Science*, Vol. 49, Issue 2, 2012, pp. 447--469.
 
-## Papers
+## Working Papers :notebook:
 
-* "[The Microfoundations of Aggregate Volatility: Productivity, Geography, or Network Asymmetry?](files/tweedle-network-volatility.pdf)", **job market paper**.
+* "[The Microfoundations of Aggregate Volatility: Productivity, Geography, or Network Asymmetry?](/files/tweedle-network-volatility.pdf)"
 
-* "[Going the Distance: Estimating the Effect of Provincial Borders on Trade when Geography (and Everything Else) Matters](files/tweedle-trade-barriers-2016.pdf)", with Robert Bemrose and Mark Brown. (Submitted.)
+* "[Going the Distance: Estimating the Effect of Provincial Borders on Trade when Geography (and Everything Else) Matters](/files/tweedle-trade-barriers-2016.pdf)", with Robert Bemrose and Mark Brown. (Submitted.)
 
-* "[Firm Networks, Borders and Regional Economic Integration](files/tweedle-firm-networks.pdf)", with W. Mark Brown and Afshan Dar-Brodeur. (R&R.)
+* "[Firm Networks, Borders and Regional Economic Integration](/files/tweedle-firm-networks.pdf)", with W. Mark Brown and Afshan Dar-Brodeur. (R&R.)
 
 
 
