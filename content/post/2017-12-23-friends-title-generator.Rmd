@@ -1,7 +1,7 @@
 ---
 title: "Friends Title Generator, Part 1"
 author: "Jesse Tweedle"
-date: 2017-12-23T17:33:11-05:00
+date: 2017-12-23T05:33:11-05:00
 description: "This post includes a R code script to generate Friends episode titles."
 tags: ["r", "friends", "tidytext", "nlp", "markov model"]
 categories: ["r", "friends"]
