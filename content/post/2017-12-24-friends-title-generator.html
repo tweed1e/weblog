@@ -96,12 +96,14 @@ titles %&gt;% filter(grepl(&quot;dies&quot;, title, ignore.case = TRUE))
   new_title[-length(new_title)] %&gt;% paste(collapse = &quot; &quot;) %&gt;% stringr::str_to_title()
 }
 generate_title()
-## [1] &quot;The One Where The Screamer&quot;</code></pre>
+## [1] &quot;The One With Phoebe&#39;s Wedding Dresses&quot;</code></pre>
 <p>Yeaaa! Here’s a few more:</p>
 <pre class="r"><code>replicate(5, generate_title())
-## [1] &quot;The One With Rachel&#39;s Sister&quot;    &quot;The One With The Dozen Lasagnas&quot;
-## [3] &quot;The One With Joey&#39;s Fridge&quot;      &quot;The One With The Sharks&quot;        
-## [5] &quot;The One With Rachel&#39;s Assistant&quot;</code></pre>
+## [1] &quot;The One Where Rachel Tells Rachel Has A Roommate&quot;
+## [2] &quot;The One Where Rachel&quot;                            
+## [3] &quot;The One With The Vows&quot;                           
+## [4] &quot;The One With The Tea Leaves&quot;                     
+## [5] &quot;The One That Could Have Been Part 1&quot;</code></pre>
 <p>Problem: since this is based on only 236 titles, it tends to generate titles that already exist. E.g., there is only one time the word ‘George’ shows up in a title, so anytime the title generator hits ‘The One With George’, the next word will always be ‘Stephanopolous’, and then it will always end.</p>
 <p>We can try to fix this in the next installment, by using the <code>tidytext::parts_of_speech</code> dataset to generate sentence structures and then populate them with words, e.g., <code>&quot;the one where [noun] [verb]&quot;</code>.</p>
 </div>
