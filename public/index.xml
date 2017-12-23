@@ -6,10 +6,21 @@
     <description>Recent content on Jesse Tweedle</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 18 Dec 2017 15:33:11 -0500</lastBuildDate>
+    <lastBuildDate>Fri, 22 Dec 2017 15:33:11 -0500</lastBuildDate>
     
 	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Post-selection inference on Friends titles in R</title>
+      <link>/post/2017-12-22-post-selection-inference-on-friends-titles-in-r/</link>
+      <pubDate>Fri, 22 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/post/2017-12-22-post-selection-inference-on-friends-titles-in-r/</guid>
+      <description>Goal I want to be a Friends scriptwriter. Can I pick a title that makes an episode an automatic classic? If I just include a character’s name in the title, does it make it automatically popular? I assume I should just write “The One Where Rachel is Rachel”. But let’s investigate.
+The question: what is the effect of a character’s name in the episode title on the episode rating?
+ Data We’ll use Friends data we rvested from IMDB in a previous post, or just load it via devtools::install_github(&#39;tweed1e/werfriends&#39;).</description>
+    </item>
     
     <item>
       <title>rvest &#43; imdb -&gt; explore Friends episode titles</title>
@@ -34,15 +45,26 @@ library(tidyverse) library(rvest) library(skimr) library(ggplot2) library(ggrepe
     </item>
     
     <item>
-      <title>Papers &amp; Publications</title>
-      <link>/publications/</link>
+      <title>About</title>
+      <link>/about/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/publications/</guid>
-      <description>Publications  &amp;ldquo;Correlated shocks within firms&amp;rdquo;. 2017. Economics Letters (forthcoming).
- &amp;ldquo;A Hotelling style model of spatial competition for a convenience good&amp;rdquo;, with B. Curtis Eaton. 2012. The Annals of Regional Science, Vol. 49, Issue 2, pp. 447–469.
-  Papers  &amp;ldquo;The Microfoundations of Aggregate Volatility: Productivity, Geography, or Network Asymmetry?&amp;rdquo;, job market paper.
- &amp;ldquo;Going the Distance: Estimating the Effect of Provincial Borders on Trade when Geography (and Everything Else) Matters&amp;rdquo;, with Robert Bemrose and Mark Brown.</description>
+      <guid>/about/</guid>
+      <description>jt &amp;lt;- function(data) { if (is_appropriate) { result &amp;lt;- data %&amp;gt;% do_econometrics() } else { result &amp;lt;- data %&amp;gt;% scatterplot() } result }  </description>
+    </item>
+    
+    <item>
+      <title>Jesse Tweedle</title>
+      <link>/cv/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/cv/</guid>
+      <description>Econometrics + data science. pdf version.
+Employment Research Economist &amp;mdash; Statistics Canada, 2014&amp;ndash;Current
+Education PhD, Economics &amp;mdash; University of Calgary, 2018 (expected)
+Publications  &amp;ldquo;Correlated shocks within firms&amp;rdquo;. Economics Letters, Volume 163, February 2018, Pages 95&amp;ndash;97.
+ &amp;ldquo;A Hotelling style model of spatial competition for a convenience good&amp;rdquo;, with B. Curtis Eaton. 2012. The Annals of Regional Science, Vol. 49, Issue 2, 2012, pp. 447&amp;ndash;469.
+  Papers  &amp;ldquo;The Microfoundations of Aggregate Volatility: Productivity, Geography, or Network Asymmetry?</description>
     </item>
     
   </channel>

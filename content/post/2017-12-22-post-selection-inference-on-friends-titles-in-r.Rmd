@@ -1,0 +1,237 @@
+---
+title: "Post-selection inference on Friends titles in R"
+author: "Jesse Tweedle"
+date: 2017-12-22T15:33:11-05:00
+description: "This post applies post-selection procedure to estimating the effect of character names in Friends episode titles on their ratings. Ross is good, apparently."
+tags: ["r", "friends", "tidytext", "glmnet", "lasso", "post-selection inference", "econometrics"]
+categories: ["r"]
+---
+
+```{r setup, include=FALSE}
+# set fig_height, fig_width.
+knitr::opts_chunk$set(collapse = TRUE, fig.width=7, fig.height=4)
+library(tidyverse)
+library(ggplot2)
+library(tidytext)
+library(glmnet)
+# library(werfriends)
+```
+
+## Goal
+
+I want to be a Friends scriptwriter. Can I pick a title that makes an episode an automatic classic? If I just include a character's name in the title, does it make it automatically popular? I assume I should just write "The One Where Rachel is Rachel". But let's investigate.
+
+The question: what is the effect of a character's name in the episode title on the episode rating?
+
+## Data
+
+We'll use Friends data we `rvest`ed from IMDB in a [previous post](/post/2017-12-18-rvest-friends-episodes/), or just load it via `devtools::install_github('tweed1e/werfriends')`.
+
+``` {r}
+titles <- werfriends::friends_episodes %>% as_tibble()
+titles
+```
+
+The problem: all we really have is titles, writers and directors. How do we use natural language information to predict episode ratings? My first idea is to use dummy variables (aka factors with levels `c("0","1")`) to encode the title words and director and writer names. In other words, the S4E19 episode titled "The One with All the Haste" would have a `1` in variable `haste`, but a `0` for every character dummy variable `ross`, `rachel`, etc. (S4E19 is the ep where Monica and Rachel steal their apartment back from Chandler and Joey. So good.)
+
+## Method
+
+So, once we create language dummy variables to try to control for episode characteristics that may affect ratings, we find ourselves with too many predictors. There are only `r nrow(titles)` episodes but we create way more language dummies `r emo::ji('think')`.
+
+This is a high-dimensional problem, with more explanatory variables than observations, `p>>n`. A few econometricians have proposed a post-selection estimator to solve these problems, which have a slightly different flavour than normal machine learning / prediction problems.
+
+Consider the goal: I want to know the effect of including a character's name in an episode title. LASSO selects important variables that predict the outcome (rating, in my case). If we don't penalize the character names, and there is another variable that is correlated with the outcome and one of the character names, then we end up with a biased estimate of the character effect. E.g., say most "Ross" episodes are directed by Kevin Bright, who is a "good" director according to the mean rating of all the episodes he directed). Then LASSO selects "Ross" to be in the model, but drops "Kevin Bright" because it's so correlated with "Ross" (which means it doesn't improve the rating prediction much), and LASSO will tell us that "Ross" has a high positive coefficient. But we know that Ross is trash and it's only because Kevin Bright directed his episodes!
+
+The solution is called **post-selection inference**, explained in ["High-dimensional methods and inference on structural and treatment effects"](http://www.jstor.org/stable/23723483?casa_token=UtP_wvb6MYcAAAAA:jiY5Fzx0lZppTE4J3hiXcZu4_-_zxqjz1n9cc5dsQELc8NnEE8msIi3ZirYaGAXJLR1Dns_QV0pWbAqvneNm-U4OPuNNDWAzBqFjglKnX4Mg_RwyKys6kA&seq=9#page_scan_tab_contents) (Belloni, et al. 2013). They actually call it a 'double selection procedure' or post-double-selection, but post-selection is fine with me.
+
+The idea is: run LASSO on the outcome variable and everything but the character names; then run LASSO on each of the character names and the rest of the RHS variables. Take all the non-zero coefficients from all of these LASSO results, then regress rating on all the selected variables via a linear model (aka ordinary least squares).
+
+## Code
+
+There are a few annoying steps. 
+
+First, I use `tidytext` to convert titles to words, and then `spread` those words into dummy factors for the dataset (the dataset is very 'wide' after this). I create dummy factors for directors and writers as well.
+
+Next, run the naive linear model, and save the estimates. Then run naive LASSO and save the estimates. Then run the double-selection procedure.
+
+### Process
+
+``` {r include = FALSE}
+writ <- titles %>% select(season, episode, word = writers) %>% unnest(word) %>% 
+  mutate(word = gsub('\\s|[[:punct:]]', '', word) %>% tolower(), x = 1) %>% 
+  spread(key = word, value = x, fill = 0) %>% 
+  ungroup() %>% # need the ungroup here before the factor call. ugh.
+  mutate_all(factor)
+
+# and same for directors.
+dirs <- titles %>% select(season, episode, word = director) %>% unnest(word) %>% 
+  mutate(word = gsub('\\s|[[:punct:]]', '', word) %>% tolower(), x = 1) %>% 
+  spread(key = word, value = x, fill = 0) %>% 
+  ungroup() %>% # need the ungroup here before the factor call. ugh.
+  mutate_all(factor)
+dirs
+
+# need to keep season, episode so I can 
+
+wo <- titles %>% select(-director, -writers) %>%  
+  unnest_tokens(word, title) %>% 
+  anti_join(stop_words %>% filter(!word %in% c("where","with","after","everybody"))) %>% # except some titles are all stop words
+  mutate(word = gsub("'s", "", word), 
+         word = ifelse(grepl("1|2|break", word), paste0("v_", word), word), 
+         x = 1) %>% # replace Joey's with Joey, etc.
+  spread(key = word, value = x, fill = 0) %>% 
+  # rename(v_1 = `1`, v_2 = `2`, v_break = `break`) %>% 
+  select(rating, chandler, joey, monica, phoebe, rachel, ross, 
+         season, episode, everything()) %>% 
+  ungroup() %>% # need the ungroup here before the factor call. ugh.
+  mutate_at(vars(-rating), factor)
+# ^ sparse.model.matrix wasn't happy with some column names break glmnet
+# library(tidyeval)
+# w %>% rename_("v_1" = `1`) #, v_2 = `2`, v_break = `break`)
+# xxx
+
+# do I really have to do that?
+
+# cool
+episodes <- full_join(wo, dirs) %>% full_join(writ)
+
+ep_mm <- sparse.model.matrix(~ ., episodes %>% select(-rating, -n_ratings))[,-1] 
+
+# oops, matrix
+lincomb <- caret::findLinearCombos(ep_mm)
+ep_mm <- ep_mm[, -lincomb$remove] # ok cool. put that in somewhere before.
+```
+
+Do ugly stuff ([check source](https://github.com/tweed1e/weblog/tree/master/content/post/2017-12-22-post-selection-inference-on-friends-titles-in-r)) for full code and end up with this:
+
+``` {r}
+# the dataset
+episodes
+# also created `ep_mm`, a sparse model matrix based on `episodes`
+```
+
+This is a dataset with a million factors for different words that show up in titles, and factors for all the directors and writers. There are only `r nrow(episodes)` episodes/observations but `r ncol(episodes)-1` potential explanatory variables, leaving us in a high-dimensional situation `p>>n` (although a pretty low dimensional high dimensional situation).
+
+### Do naive linear model / OLS
+
+The naive linear model resolves the high dimensional problem by selecting variables manually: I want to control for season and episode effects, and estimate the character effects.
+
+``` {r}
+naive <- lm(rating ~ season + episode + 
+              chandler + joey + monica + 
+              phoebe + rachel + ross, 
+            data = episodes)
+```
+
+### Do naive LASSO
+
+Or we could use LASSO to select our control variables for us; we remove the penalty on the characters to ensure these coefficients are estimated to be non-zero.
+
+``` {r}
+# penalty factor: 0 for the first 6 variables (the characters), 
+# then 1 for the rest.
+penalty.factor <- c(rep(0, 6), rep(1, ncol(ep_mm) - 6))
+
+# use `glmnet` to run cross-validated lasso with new penalty.factor
+c <- cv.glmnet(ep_mm, episodes$rating, penalty.factor = penalty.factor) %>%
+  coef(s = 'lambda.min') %>% .[-1,] # save the optimal coefficients 
+
+# then create dataset of coefficient estimates
+lasso <- tibble(term = names(c), estimate = c)
+lasso
+```
+
+### Do post-selection estimation
+
+``` {r}
+
+get_lasso_coefs <- function(name, x) { 
+# function that returns non-zero coefficients that
+# that predict one of the RHS variables
+  c <- cv.glmnet(x[, colnames(x) != name], x[,name]) %>%
+    coef(s = 'lambda.min') %>% .[-1,]
+  names(c)[c != 0]
+}
+
+get_lasso_coefs_ <- function(y, names, x) { 
+# function that returns non-zero coefficients that
+# that predict the RHS variables (first removing the characters)
+  c <- cv.glmnet(x[, !colnames(x) %in% names], y) %>%
+    coef(s = 'lambda.min') %>% .[-1,]
+  names(c)[c != 0] # only return names that are non-zero
+}
+```
+
+With those functions, now we loop over the relevant character variables and return non-zero LASSO coefficients.
+
+``` {r}
+# list of characters
+friends <- c("chandler", 
+             "joey", 
+             "monica", 
+             "phoebe", 
+             "rachel", 
+             "ross") %>% 
+  map_chr(paste0, "1")
+
+# map list of characters into lasso coefficient function
+lasso_coefs <- friends %>%
+  map(get_lasso_coefs, x = ep_mm) %>% 
+  unlist() 
+
+# put all the selected variables together
+post_vars <- c(friends, 
+          lasso_coefs,
+          get_lasso_coefs_(episodes$rating, friends, ep_mm)) %>% unique()
+
+# process the variables: 'episode1' should be 'episode1', 
+# but 'chandler1' should be 'chandler'
+post_vars <- post_vars %>% 
+  as_tibble() %>% 
+  mutate(value = ifelse(grepl("season|episode", value), 
+                        value, 
+                        gsub("\\d$", "", value))) %>%
+  pull(value) %>% c(gsub("1", "", friends), .) %>% unique()
+
+post_dat <- episodes %>% mutate(x = 1) %>% 
+  spread(key = season, value = x, fill = 0, sep = "") %>% mutate(x = 1) %>% 
+  spread(key = episode, value = x, fill = 0, sep = "") %>% 
+  mutate_at(vars(-rating), factor) %>% 
+  select(one_of(c("rating", post_vars)))
+
+# the post-selection lm formula
+f <- paste("rating ~ ", paste(post_vars, collapse = " + "))
+
+```
+
+## Results
+
+``` {r}
+coefs <- bind_rows(
+  # post-selection model coefficients
+  lm(f, data = post_dat) %>% summary() %>% tidy() %>% 
+    .[2:7,] %>% as_tibble() %>% mutate(model = "post lm"),
+  # naive lm model coefficients
+  naive %>% tidy() %>% tail() %>% as_tibble() %>% mutate(model = "naive lm"),
+  # lasso selection
+  lasso[1:6, ] %>%  mutate(model = "lasso")
+)
+
+# bar chart for coefficients + errorbars by character and model
+coefs %>% 
+  ggplot(aes(x = factor(term), y = estimate, group = factor(model), fill = factor(model))) + 
+  geom_col(position = 'dodge') + 
+  geom_errorbar(
+    aes(ymin = estimate - 1.96 * std.error, ymax = estimate + 1.96 * std.error),
+    width = 0.4,
+    position = position_dodge(width = 0.9)
+  ) + labs(title = 'Post-selection model coefficients are the best', x = 'Character', y = 'Estimate')
+```
+
+The naive linear model (significantly) says Joey sucks! If Joey's in an episode, the episode is typically `r naive %>% tidy() %>% as_tibble() %>% filter(term == 'joey1') %>% select(estimate) %>% abs() %>% round(2)` stars lower! Phoebe also sucks, but not with such certainty. The naive linear model is also pretty sure none of the other characters matter.
+
+The naive LASSO model reverses that: Joey doesn't matter as much; but Phoebe still sucks and Ross is now great! (NB: you know that's not true, Ross is trash.)
+
+Ok, I was wrong, the post-selection procedure thinks Ross is great. Most of the other characters' estimates are closer to zero, and much different than the naive linear model. Phoebe looks especially vindicated by the post-selection model. (The error bars really drive home the uncertainty, thanks to the tips in the [ggplot2 docs](http://ggplot2.tidyverse.org/reference/position_dodge.html) I found while trying to figure out `position = 'dodge'` in the `goem_col`s.)
+
+What does that mean for us? I thought character names would matter (e.g., 'Rachel' episodes would be rated higher), they don't, and post-selection inference seems robust. So when I write my Friends episodes, I don't have to care too much about putting characters in the titles, other than Ross, and I'm defo not writing a Ross episode. Or maybe I'll write "The One without Ross".

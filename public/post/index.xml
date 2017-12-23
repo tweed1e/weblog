@@ -6,10 +6,21 @@
     <description>Recent content in Posts on Jesse Tweedle</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 18 Dec 2017 15:33:11 -0500</lastBuildDate>
+    <lastBuildDate>Fri, 22 Dec 2017 15:33:11 -0500</lastBuildDate>
     
 	<atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Post-selection inference on Friends titles in R</title>
+      <link>/post/2017-12-22-post-selection-inference-on-friends-titles-in-r/</link>
+      <pubDate>Fri, 22 Dec 2017 15:33:11 -0500</pubDate>
+      
+      <guid>/post/2017-12-22-post-selection-inference-on-friends-titles-in-r/</guid>
+      <description>Goal I want to be a Friends scriptwriter. Can I pick a title that makes an episode an automatic classic? If I just include a character’s name in the title, does it make it automatically popular? I assume I should just write “The One Where Rachel is Rachel”. But let’s investigate.
+The question: what is the effect of a character’s name in the episode title on the episode rating?
+ Data We’ll use Friends data we rvested from IMDB in a previous post, or just load it via devtools::install_github(&#39;tweed1e/werfriends&#39;).</description>
+    </item>
     
     <item>
       <title>rvest &#43; imdb -&gt; explore Friends episode titles</title>

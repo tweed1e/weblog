@@ -99,7 +99,7 @@ titles %&gt;% arrange(rating) %&gt;% head(5)
 </div>
 <div id="are-the-directors-any-good" class="section level2">
 <h2>Are the directors any good?</h2>
-<p>I’m trying to write a good Friends script, who should I get to direct it? Here, we’ll just have to <code>unnest</code> the list-cols (because of one episode that has two directors, for some reason), and then group and summarize. I’ve already picked out a few directors to highlight with <a href="https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html"><code>geom_text_repel</code></a>.</p>
+<p>I’m trying to write a good Friends script, who should I get to direct it? Here, we’ll just have to <code>unnest</code> the list-cols (because of one episode that has two directors, for some reason), and then group and summarize. I’ve already picked out a few directors to highlight with <a href="https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html">geom_text_repel</a>.</p>
 <pre class="r"><code># Get a dataset of directors
 dirs &lt;- titles %&gt;% 
   unnest(director) %&gt;%
@@ -189,7 +189,7 @@ title_words
 <h2>Appendix: <code>rvest</code></h2>
 <p>The toughest part of learning <code>rvest</code> is the lack of transparency in the returned objects. I find it difficult to navigate a page with <code>rvest</code> through trial-and-error because it’s hard to see inside the <code>xml_document</code> or <code>xml_nodeset</code> objects—but maybe there’s some <code>xml</code> stuff I don’t understand yet. Anyway, here’s what I found.</p>
 <p>First, explore the IMDB html / source. The Friends url is easy to find, and then we need a way to go from each season’s page (that lists the episodes) to each individual episode page (to get the data). Suppose we have the season url and one episode url, let’s write a function to get that episode’s data.</p>
-<p>We need: <code>html_session</code> to jump to different links, then read the html with <code>read_html</code> (good name). <a href="http://selectorgadget.com/"><code>selectorgadget</code></a> is a useful chrome extension to find CSS paths that select the objects you like, but I found it easier to just right-click + inspect element and find attributes that identify the things I want (usually <code>class</code> and <code>id</code>; though <code>itemprop</code> turns out to be super useful on these imdb pages).</p>
+<p>We need: <code>html_session</code> to jump to different links, then read the html with <code>read_html</code> (good name). <a href="http://selectorgadget.com/">selectorgadget</a> is a useful chrome extension to find CSS paths that select the objects you like, but I found it easier to just right-click + inspect element and find attributes that identify the things I want (usually <code>class</code> and <code>id</code>; though <code>itemprop</code> turns out to be super useful on these imdb pages).</p>
 <p>Here, I’m looking for episode title (inspect element suggests <code>div h1[itemprop=&quot;name&quot;])</code> would select the title (which I need to verify for this one, and then hope it works for the rest 🙏). Also rating (<code>span[itemprop=&quot;ratingValue&quot;]) and rating count (</code>span[itemprop=“ratingCount”]`).</p>
 <p>After that, we get lists of directors and writers from the cast table, and filter accordingly. Sometimes the writers are listed with credits “written by”, sometimes “writer”, or “teleplay by” or “story by” or whatever else they like to say.</p>
 <p>Finally, we stick them all in a tibble and return it. The writers and directors are returned in list-cols, so every episode gets one row.</p>
@@ -197,9 +197,9 @@ title_words
   # given a show url (for the session), 
   # and an episode url (relative to the show url) 
   # follow the link to the episode and download the episode data
-  # print(paste0(&quot;S:&quot;, stringr::str_extract(url, &quot;(\\d*)$&quot;), 
-  #              &quot; E:&quot;, stringr::str_extract(ep_url, &quot;(\\d*)$&quot;)))
-  # print(ep_url)
+  print(paste0(&quot;S:&quot;, stringr::str_extract(url, &quot;(\\d*)$&quot;),
+               &quot; E:&quot;, stringr::str_extract(ep_url, &quot;(\\d*)$&quot;)))
+  print(ep_url)
   
   # start a session and jump to the episode url
   session &lt;- html_session(paste0(url)) %&gt;%  jump_to(ep_url)

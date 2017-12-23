@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>/post/2017-12-22-post-selection-inference-on-friends-titles-in-r/</loc>
+    <lastmod>2017-12-22T15:33:11-05:00</lastmod>
+  </url>
+  
+  <url>
     <loc>/post/2017-12-18-rvest-friends-episodes/</loc>
     <lastmod>2017-12-18T15:33:11-05:00</lastmod>
   </url>
@@ -10,6 +15,10 @@
   <url>
     <loc>/post/rstats-closure-windows-parallel/</loc>
     <lastmod>2017-12-17T15:33:11-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/about/</loc>
   </url>
   
   <url>
@@ -30,14 +39,26 @@
   </url>
   
   <url>
+    <loc>/tags/econometrics/</loc>
+    <lastmod>2017-12-22T15:33:11-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>/tags/friends/</loc>
-    <lastmod>2017-12-18T15:33:11-05:00</lastmod>
+    <lastmod>2017-12-22T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/functional-programming/</loc>
     <lastmod>2017-12-17T15:33:11-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/glmnet/</loc>
+    <lastmod>2017-12-22T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -49,12 +70,18 @@
   
   <url>
     <loc>/</loc>
-    <lastmod>2017-12-18T15:33:11-05:00</lastmod>
+    <lastmod>2017-12-22T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>/publications/</loc>
+    <loc>/cv/</loc>
+  </url>
+  
+  <url>
+    <loc>/tags/lasso/</loc>
+    <lastmod>2017-12-22T15:33:11-05:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
@@ -64,20 +91,26 @@
   </url>
   
   <url>
-    <loc>/post/</loc>
-    <lastmod>2017-12-18T15:33:11-05:00</lastmod>
+    <loc>/tags/post-selection-inference/</loc>
+    <lastmod>2017-12-22T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>/categories/r/</loc>
-    <lastmod>2017-12-18T15:33:11-05:00</lastmod>
+    <loc>/post/</loc>
+    <lastmod>2017-12-22T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/r/</loc>
-    <lastmod>2017-12-18T15:33:11-05:00</lastmod>
+    <lastmod>2017-12-22T15:33:11-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/categories/r/</loc>
+    <lastmod>2017-12-22T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -95,7 +128,7 @@
   
   <url>
     <loc>/tags/tidytext/</loc>
-    <lastmod>2017-12-18T15:33:11-05:00</lastmod>
+    <lastmod>2017-12-22T15:33:11-05:00</lastmod>
     <priority>0</priority>
   </url>
   

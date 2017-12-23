@@ -117,7 +117,7 @@ They're all clip shows lmao. Ratings are accurate then.
 
 ## Are the directors any good?
 
-I'm trying to write a good Friends script, who should I get to direct it? Here, we'll just have to `unnest` the list-cols (because of one episode that has two directors, for some reason), and then group and summarize. I've already picked out a few directors to highlight with [`geom_text_repel`](https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html). 
+I'm trying to write a good Friends script, who should I get to direct it? Here, we'll just have to `unnest` the list-cols (because of one episode that has two directors, for some reason), and then group and summarize. I've already picked out a few directors to highlight with [geom_text_repel](https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html). 
 
 ``` {r}
 # Get a dataset of directors
@@ -188,7 +188,7 @@ The toughest part of learning `rvest` is the lack of transparency in the returne
 
 First, explore the IMDB html / source. The Friends url is easy to find, and then we need a way to go from each season's page (that lists the episodes) to each individual episode page (to get the data). Suppose we have the season url and one episode url, let's write a function to get that episode's data.
 
-We need: `html_session` to jump to different links, then read the html with `read_html` (good name). [`selectorgadget`](http://selectorgadget.com/) is a useful chrome extension to find CSS paths that select the objects you like, but I found it easier to just right-click + inspect element and find attributes that identify the things I want (usually `class` and `id`; though `itemprop` turns out to be super useful on these imdb pages).
+We need: `html_session` to jump to different links, then read the html with `read_html` (good name). [selectorgadget](http://selectorgadget.com/) is a useful chrome extension to find CSS paths that select the objects you like, but I found it easier to just right-click + inspect element and find attributes that identify the things I want (usually `class` and `id`; though `itemprop` turns out to be super useful on these imdb pages).
 
 Here, I'm looking for episode title (inspect element suggests `div h1[itemprop="name"])` would select the title (which I need to verify for this one, and then hope it works for the rest `r emo::ji('pray')`). Also rating (`span[itemprop="ratingValue"]) and rating count (`span[itemprop="ratingCount"]`).
 
@@ -201,9 +201,9 @@ get_ep_data <- function(ep_url, url) {
   # given a show url (for the session), 
   # and an episode url (relative to the show url) 
   # follow the link to the episode and download the episode data
-  # print(paste0("S:", stringr::str_extract(url, "(\\d*)$"), 
-  #              " E:", stringr::str_extract(ep_url, "(\\d*)$")))
-  # print(ep_url)
+  print(paste0("S:", stringr::str_extract(url, "(\\d*)$"),
+               " E:", stringr::str_extract(ep_url, "(\\d*)$")))
+  print(ep_url)
   
   # start a session and jump to the episode url
   session <- html_session(paste0(url)) %>%  jump_to(ep_url)

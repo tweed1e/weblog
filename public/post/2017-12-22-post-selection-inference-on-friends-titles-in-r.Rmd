@@ -1,0 +1,18 @@
+---
+title: "Post-selection inference on Friends titles in R"
+author: "Jesse Tweedle"
+date: 2017-12-22T15:33:11-05:00
+description: "This post..."
+tags: ["r", "friends", "tidytext", "glmnet", "lasso", "post-selection inference", "econometrics"]
+categories: ["r"]
+---
+
+```{r setup, include=FALSE}
+# set fig_height, fig_width.
+knitr::opts_chunk$set(collapse = TRUE, fig.width=7, fig.height=4)
+library(tidyverse)
+# library(ggplot2)
+# library(ggrepel)
+library(tidytext)
+# library(werfriends)
+```

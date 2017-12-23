@@ -8,9 +8,9 @@
   <header>
     <h1>{{ .Title }}</h1>
   </header>
-  {{ range where .Data.Pages "Title" "Papers & Publications" }}
-      <div >{{ .Content }}</div>
-  {{ end }}
+  {{ range where .Data.Pages "Title" "About" }}
+    <div >{{ .Content }}</div>
+ {{ end }} 
   {{ range (.Paginate (where .Data.Pages "Type" "post")).Pages }}
     {{ partial "page-summary.html" . }}
   {{ end }}

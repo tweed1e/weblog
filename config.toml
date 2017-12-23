@@ -3,6 +3,7 @@ baseURL = "/"
 languageCode = "en-us"
 title = "Jesse Tweedle"
 theme_variant = "standard"
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 [[menu.main]]
   name = "Home"
@@ -18,4 +19,14 @@ theme_variant = "standard"
   name = "CV"
   weight = 3
   identifier = "cv"
-  url = "/files/tweedle_cv.pdf"
+  url = "/cv/"
+[[menu.main]]
+  name = "Github"
+  weight = 3
+  identifier = "github"
+  url = "https://github.com/tweed1e"
+[[menu.main]]
+  name = "Twitter"
+  weight = 3
+  identifier = "twitter"
+  url = "https://twitter.com/tweed1e"
