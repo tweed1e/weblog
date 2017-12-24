@@ -2,7 +2,6 @@
 title: "Friends Title Generator, Part 2: parts of speech"
 author: "Jesse Tweedle"
 date: '2017-12-24'
-draft: true
 slug: friends-title-generator-2
 description: "This post includes a R code script to generate Friends episode titles, focusing on using parts of speech."
 tags: ["r", "friends", "tidytext", "nlp", "markov model"]
@@ -128,11 +127,11 @@ generate_title &lt;- function() {
     str_to_title() %&gt;% gsub(&quot;Pbs&quot;, &quot;PBS&quot;, .)
 }
 generate_title()
-## [1] &quot;The One With The Stain Work&quot;
+## [1] &quot;The One With The Rachel Wedding&quot;
 
 replicate(5, generate_title())
-## [1] &quot;The One With Joey Leaves Where To Husband Apothecary Car Cookies&quot;      
-## [2] &quot;The One In Chandler&#39;s The Birth&quot;                                       
-## [3] &quot;The One With The Wedding&quot;                                              
-## [4] &quot;The One With All The Tunnel Teeth Fridge Rats Baby Work Back 1 Parties&quot;
-## [5] &quot;The One Where Phoebe&quot;</code></pre>
+## [1] &quot;The One With Monica&#39;s Milk&quot;              
+## [2] &quot;The One With One Number Baby&quot;            
+## [3] &quot;The One Where Who Babysits Dancing Where&quot;
+## [4] &quot;The One With The Jealousy&quot;               
+## [5] &quot;The One Where Everybody Steaks Part&quot;</code></pre>
