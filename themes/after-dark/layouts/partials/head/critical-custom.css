@@ -99,7 +99,7 @@ hue-6-2: #c18401
 }*/
 
 .r {
-  background: #fefffe;
+  background: #fcfcff;
 }
 
 /*
@@ -112,7 +112,7 @@ XCode style (c) Angel Garcia <angelgarcia.mail@gmail.com>
   display: block;
   overflow-x: auto;
   padding: 0.5em;
-  background: #fefffe;
+  background: #fcfcff;
   color: black;
 }
 
@@ -197,9 +197,15 @@ XCode style (c) Angel Garcia <angelgarcia.mail@gmail.com>
 }
 
 .hack h1 {
-  font-size: 1.2rem; font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,serif;
+  font-size: 5rem; font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,serif;
 }
 
 .hack h2 {
-  font-size: 1.1rem; font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,serif;
+  font-size: 2rem; font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,serif;
+  padding:20px 0 5px
+}
+
+.hack h3 {
+  font-size: 1.5rem; font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,serif;
+  padding:20px 0 5px
 }

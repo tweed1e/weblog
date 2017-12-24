@@ -69,8 +69,8 @@ titles %&gt;% filter(grepl(&quot;dies&quot;, title, ignore.case = TRUE))
 ## 6     10      15     The One Where Estelle Dies     8.6      1783</code></pre>
 <p>Dang, ok. 3 old people, old yeller, Joey’s DOOL character, and JOEY’S CHAIR ROSITA.</p>
 </div>
-<div id="strategy" class="section level2">
-<h2>Strategy</h2>
+<div id="a-sentence" class="section level2">
+<h2>A sentence</h2>
 <p>A sentence is a sequence of words. Given a word, e.g., “One”, there is a probability that the next word in the sequence is “Where” (pretty high actually), and slightly different probabilities for all the other words (“With” is also very high). Thinking this way, we think of the sentence generator as a network. Each vertex is a word in the set of titles. A directed edge exists if the word pair <code>(word, next)</code> exists in the set of titles. The edge weight is the frequency of times <code>next</code> is the word that follows <code>word</code> in all the titles.</p>
 <pre class="r"><code>word_transitions &lt;- titles %&gt;% 
   unnest_tokens(word, title) %&gt;% 
@@ -83,6 +83,9 @@ titles %&gt;% filter(grepl(&quot;dies&quot;, title, ignore.case = TRUE))
   group_by(word) %&gt;% 
   mutate(weight = n / sum(n))</code></pre>
 <p>I find <code>dplyr</code> makes it super easy to get a solution right away; here, you can almost code as fast as you think (take <code>titles</code>, convert it to words, drop the first word, make a new variable representing the ‘next word’, calculate the frequency the next word appears given each current word). On the other hand, it’s a bit difficult to follow after the fact, maybe because you write it so quickly that you forget to document it. Also the constant <code>group_by</code> and <code>ungroup</code>ing. 😑.</p>
+</div>
+<div id="now-make-me-a-title-r" class="section level2">
+<h2>Now make me a title, R</h2>
 <p>So, now we have a tidy matrix of word transition probabilities. All we have to do is start with the words “the one”, and calculate the next word in the sequence (by using the great <code>sample_n</code> to pick the next word in the title). Then keep going until you hit the end of the sentence (‘EOL’).</p>
 <pre class="r"><code>generate_title &lt;- function() {
   new_title &lt;- c(&quot;the&quot;, &quot;one&quot;)
@@ -96,14 +99,18 @@ titles %&gt;% filter(grepl(&quot;dies&quot;, title, ignore.case = TRUE))
   new_title[-length(new_title)] %&gt;% paste(collapse = &quot; &quot;) %&gt;% stringr::str_to_title()
 }
 generate_title()
-## [1] &quot;The One With Phoebe&#39;s Birthday Dinner&quot;</code></pre>
+## [1] &quot;The One With The Cop&quot;</code></pre>
 <p>Yeaaa! Here’s a few more:</p>
 <pre class="r"><code>replicate(5, generate_title())
-## [1] &quot;The One Where Joey Dates&quot;                               
-## [2] &quot;The One With Ross Got High&quot;                             
-## [3] &quot;The One Where Ross Can&#39;t Remember Which Sister Babysits&quot;
-## [4] &quot;The One With Monica&#39;s Cousin&quot;                           
-## [5] &quot;The One Where Joey And Rachel Goes Back To Party&quot;</code></pre>
+## [1] &quot;The One Where Rachel&quot;                  
+## [2] &quot;The One With The Stain&quot;                
+## [3] &quot;The One Without The Superbowl Part 1&quot;  
+## [4] &quot;The One With Ross&#39;s Inappropriate Song&quot;
+## [5] &quot;The One With The Race Car Bed&quot;</code></pre>
 <p>Problem: since this is based on only 236 titles, it tends to generate titles that already exist. E.g., there is only one time the word ‘George’ shows up in a title, so anytime the title generator hits ‘The One With George’, the next word will always be ‘Stephanopolous’, and then it will always end.</p>
 <p>We can try to fix this in the next installment, by using the <code>tidytext::parts_of_speech</code> dataset to generate sentence structures and then populate them with words, e.g., <code>&quot;the one where [noun] [verb]&quot;</code>.</p>
+<p>Anyway, here’s a title that’s randomly generated every time Netlify rebuilds this post:</p>
+</div>
+<div id="the-one-where-theyre-going-away" class="section level1">
+<h1>The One Where They’re Going Away</h1>
 </div>

@@ -49,7 +49,7 @@ titles %>% filter(grepl("dies", title, ignore.case = TRUE))
 
 Dang, ok. 3 old people, old yeller, Joey's DOOL character, and JOEY'S CHAIR ROSITA.
 
-## Strategy
+## A sentence
 
 A sentence is a sequence of words. Given a word, e.g., "One", there is a probability that the next word in the sequence is "Where" (pretty high actually), and slightly different probabilities for all the other words ("With" is also very high). Thinking this way, we think of the sentence generator as a network. Each vertex is a word in the set of titles. A directed edge exists if the word pair `(word, next)` exists in the set of titles. The edge weight is the frequency of times `next` is the word that follows `word` in all the titles.
 
@@ -67,6 +67,8 @@ word_transitions <- titles %>%
 ```
 
 I find `dplyr` makes it super easy to get a solution right away; here, you can almost code as fast as you think (take `titles`, convert it to words, drop the first word, make a new variable representing the 'next word', calculate the frequency the next word appears given each current word). On the other hand, it's a bit difficult to follow after the fact, maybe because you write it so quickly that you forget to document it. Also the constant `group_by` and `ungroup`ing. `r emo::ji('expressionless')`.
+
+## Now make me a title, R
 
 So, now we have a tidy matrix of word transition probabilities. All we have to do is start with the words "the one", and calculate the next word in the sequence (by using the great `sample_n` to pick the next word in the title). Then keep going until you hit the end of the sentence ('EOL').
 
@@ -94,3 +96,7 @@ replicate(5, generate_title())
 Problem: since this is based on only `r nrow(titles)` titles, it tends to generate titles that already exist. E.g., there is only one time the word 'George' shows up in a title, so anytime the title generator hits 'The One With George', the next word will always be 'Stephanopolous', and then it will always end.
 
 We can try to fix this in the next installment, by using the `tidytext::parts_of_speech` dataset to generate sentence structures and then populate them with words, e.g., `"the one where [noun] [verb]"`.
+
+Anyway, here's a title that's randomly generated every time Netlify rebuilds this post:
+
+# `r generate_title()`
