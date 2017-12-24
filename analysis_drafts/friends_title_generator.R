@@ -125,6 +125,7 @@ titles_pos <- bind_rows(
 # now what.
 # 1. take out spaces of pos, then paste it back together
 
+
 titles_pos_fin <- titles_pos %>% 
   mutate(pos = gsub("[[:space:]]", "", tolower(pos)),
          pos = ifelse(lineno <= 3, word_, pos)) %>% 
@@ -132,15 +133,16 @@ titles_pos_fin <- titles_pos %>%
             pos = paste(pos, collapse = " "))
 
 
-titles_pos_fin %>% ungroup() %>% select(title, pos) %>% mutate(pos = gsub("intransitive", "i", pos),
-                                                               pos = gsub("transitive", "i", pos),
-                                                               pos = gsub("definitearticle", "def-art", pos),
-                                                               pos = gsub("usuparticiple", "usu", pos),
-                                                               pos = gsub("preposition", "prep", pos))
+
+# titles_pos_fin %>% ungroup() %>% select(title, pos) %>% mutate(pos = gsub("intransitive", "i", pos),
+#                                                                pos = gsub("transitive", "i", pos),
+#                                                                pos = gsub("definitearticle", "def-art", pos),
+#                                                                pos = gsub("usuparticiple", "usu", pos),
+#                                                                pos = gsub("preposition", "prep", pos))
 
 
 
-titles_pos_fin %>% group_by(pos) %>% count(sort = TRUE)
+# titles_pos_fin %>% group_by(pos) %>% count(sort = TRUE)
 
 # ok, now we're getting somewhere.
 

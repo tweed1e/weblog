@@ -1,0 +1,101 @@
+---
+title: "Friends Title Generator, Part 2: parts of speech"
+author: "Jesse Tweedle"
+date: '2017-12-24'
+draft: true
+slug: friends-title-generator-2
+description: "This post includes a R code script to generate Friends episode titles, focusing on using parts of speech."
+tags: ["r", "friends", "tidytext", "nlp", "markov model"]
+categories: ["r", "friends"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+library(tidyverse)
+library(tidytext)
+# library(werfriends)
+```
+
+We're back on the Friends script grind. 
+
+``` {r}
+titles <- werfriends::friends_episodes %>% select(-director, -writers)
+titles
+```
+
+Approach: instead of calculating word transition probabilities directly from the titles, we're going to use the same approach to generate sentence structures, which will look like "The One Where [Noun] [Verb]". Then, I'll randomly select a noun from all the nouns in the set of titles, and randomly select a verb from all the verbs in the set of titles. That'll give me "The One Where Ross Dies". Perfect.
+
+``` {r}
+title_words <- titles %>% 
+  unnest_tokens(word, title) %>% # convert titles to words
+  group_by(season, episode) %>% 
+  mutate(lineno = row_number()) %>% 
+  group_by(season, episode, lineno) %>%
+  # e.g., split "ross's" into list("ross", "'s"):
+  mutate(x = ifelse(grepl("'", word), 
+                    str_match(word, "([a-z]*)('s)") %>% .[,-1] %>% lst(),
+                    word %>% lst())) %>% 
+  unnest() %>% # unnest those lists
+  ungroup() %>% 
+  # if "ross's", save new rows as "ross" and "'s":
+  mutate(word = coalesce(x, word)) %>% 
+  select(-x)
+```
+
+
+
+``` {r}
+# readr unzips stuff! ty tidytext documentation.
+# symlink?
+# stop(print(getwd()))
+parts_of_speech <- read_tsv("SUBTLEX-US_frequency_list_with_PoS_information_final_text_version.zip")
+titles_pos <- title_words %>% 
+  left_join(parts_of_speech %>% select(word = Word, pos = Dom_PoS_SUBTLEX)) %>% 
+  mutate(pos = case_when(
+    grepl("'", word) ~ word,
+    is.na(pos) ~ "Noun",
+    TRUE ~ pos
+  )) 
+
+pos_transitions <- titles_pos %>% 
+  group_by(season, episode) %>%
+  filter(lineno >= 2) %>% 
+  mutate(pos = ifelse(lineno<=3, word, pos),
+         nxt = lead(pos), 
+         nxt = ifelse(is.na(nxt), "EOL", nxt)) %>% 
+  group_by(pos, nxt) %>% 
+  count() %>% 
+  group_by(pos) %>% 
+  mutate(weight = n / sum(n))
+
+pos_transitions
+
+word_pos_freq <- titles_pos %>% ungroup() %>% count(word, pos) %>% mutate(weight = n / sum(n))
+
+generate_title <- function() {
+
+  new_title <- c("the", "one")
+  while(new_title[length(new_title)] != "EOL") {
+    # print(new_title[length(new_title)])
+    new_title <- c(new_title, 
+                   pos_transitions %>% 
+                     filter(pos == new_title[length(new_title)]) %>% 
+                     sample_n(size = 1, weight = weight) %>% 
+                     pull(nxt))
+  }
+
+  new_title %>% enframe() %>% 
+    left_join(word_pos_freq, by = c("value" = "pos")) %>% 
+    mutate(weight = ifelse(is.na(weight), 1, weight)) %>% 
+    group_by(name) %>% sample_n(size = 1, weight = weight) %>% 
+    mutate(word = ifelse(is.na(word), value, word)) %>% 
+    filter(word != "EOL") %>% ungroup() %>% 
+    summarize(title = paste(word, collapse = " ")) %>% 
+    pull(title) %>% gsub(" 's ", "'s ", .) %>% 
+    str_to_title() %>% gsub("Pbs", "PBS", .)
+}
+generate_title()
+
+replicate(5, generate_title())
+
+```

@@ -1,0 +1,138 @@
+---
+title: "Friends Title Generator, Part 2: parts of speech"
+author: "Jesse Tweedle"
+date: '2017-12-24'
+draft: true
+slug: friends-title-generator-2
+description: "This post includes a R code script to generate Friends episode titles, focusing on using parts of speech."
+tags: ["r", "friends", "tidytext", "nlp", "markov model"]
+categories: ["r", "friends"]
+---
+
+
+
+<p>We’re back on the Friends script grind.</p>
+<pre class="r"><code>titles &lt;- werfriends::friends_episodes %&gt;% select(-director, -writers)
+titles
+## # A tibble: 236 x 5
+##    season episode                                           title rating
+##     &lt;dbl&gt;   &lt;dbl&gt;                                           &lt;chr&gt;  &lt;dbl&gt;
+##  1      1       1           The One Where Monica Gets a Roommate     8.5
+##  2      1       2           The One with the Sonogram at the End     8.2
+##  3      1       3                         The One with the Thumb     8.3
+##  4      1       4             The One with George Stephanopoulos     8.3
+##  5      1       5 The One with the East German Laundry Detergent     8.6
+##  6      1       6                          The One with the Butt     8.3
+##  7      1       7                      The One with the Blackout     9.0
+##  8      1       8                  The One Where Nana Dies Twice     8.2
+##  9      1       9               The One Where Underdog Gets Away     8.3
+## 10      1      10                        The One with the Monkey     8.2
+## # ... with 226 more rows, and 1 more variables: n_ratings &lt;dbl&gt;</code></pre>
+<p>Approach: instead of calculating word transition probabilities directly from the titles, we’re going to use the same approach to generate sentence structures, which will look like “The One Where [Noun] [Verb]”. Then, I’ll randomly select a noun from all the nouns in the set of titles, and randomly select a verb from all the verbs in the set of titles. That’ll give me “The One Where Ross Dies”. Perfect.</p>
+<pre class="r"><code>title_words &lt;- titles %&gt;% 
+  unnest_tokens(word, title) %&gt;% # convert titles to words
+  group_by(season, episode) %&gt;% 
+  mutate(lineno = row_number()) %&gt;% 
+  group_by(season, episode, lineno) %&gt;%
+  # e.g., split &quot;ross&#39;s&quot; into list(&quot;ross&quot;, &quot;&#39;s&quot;):
+  mutate(x = ifelse(grepl(&quot;&#39;&quot;, word), 
+                    str_match(word, &quot;([a-z]*)(&#39;s)&quot;) %&gt;% .[,-1] %&gt;% lst(),
+                    word %&gt;% lst())) %&gt;% 
+  unnest() %&gt;% # unnest those lists
+  ungroup() %&gt;% 
+  # if &quot;ross&#39;s&quot;, save new rows as &quot;ross&quot; and &quot;&#39;s&quot;:
+  mutate(word = coalesce(x, word)) %&gt;% 
+  select(-x)</code></pre>
+<pre class="r"><code># readr unzips stuff! ty tidytext documentation.
+# symlink?
+# stop(print(getwd()))
+parts_of_speech &lt;- read_tsv(&quot;SUBTLEX-US_frequency_list_with_PoS_information_final_text_version.zip&quot;)
+## Warning in strptime(x, format, tz = tz): unknown timezone &#39;default/America/
+## Toronto&#39;
+## Parsed with column specification:
+## cols(
+##   Word = col_character(),
+##   FREQcount = col_integer(),
+##   CDcount = col_integer(),
+##   FREQlow = col_integer(),
+##   Cdlow = col_integer(),
+##   SUBTLWF = col_double(),
+##   Lg10WF = col_double(),
+##   SUBTLCD = col_double(),
+##   Lg10CD = col_double(),
+##   Dom_PoS_SUBTLEX = col_character(),
+##   Freq_dom_PoS_SUBTLEX = col_character(),
+##   Percentage_dom_PoS = col_character(),
+##   All_PoS_SUBTLEX = col_character(),
+##   All_freqs_SUBTLEX = col_character()
+## )
+titles_pos &lt;- title_words %&gt;% 
+  left_join(parts_of_speech %&gt;% select(word = Word, pos = Dom_PoS_SUBTLEX)) %&gt;% 
+  mutate(pos = case_when(
+    grepl(&quot;&#39;&quot;, word) ~ word,
+    is.na(pos) ~ &quot;Noun&quot;,
+    TRUE ~ pos
+  )) 
+## Joining, by = &quot;word&quot;
+
+pos_transitions &lt;- titles_pos %&gt;% 
+  group_by(season, episode) %&gt;%
+  filter(lineno &gt;= 2) %&gt;% 
+  mutate(pos = ifelse(lineno&lt;=3, word, pos),
+         nxt = lead(pos), 
+         nxt = ifelse(is.na(nxt), &quot;EOL&quot;, nxt)) %&gt;% 
+  group_by(pos, nxt) %&gt;% 
+  count() %&gt;% 
+  group_by(pos) %&gt;% 
+  mutate(weight = n / sum(n))
+
+pos_transitions
+## # A tibble: 119 x 4
+## # Groups:   pos [31]
+##          pos       nxt     n     weight
+##        &lt;chr&gt;     &lt;chr&gt; &lt;int&gt;      &lt;dbl&gt;
+##  1        &#39;s Adjective    11 0.21568627
+##  2        &#39;s   Article     1 0.01960784
+##  3        &#39;s      Noun    36 0.70588235
+##  4        &#39;s      Verb     3 0.05882353
+##  5 Adjective Adjective     1 0.02857143
+##  6 Adjective       EOL     5 0.14285714
+##  7 Adjective    Letter     1 0.02857143
+##  8 Adjective      Name     1 0.02857143
+##  9 Adjective      Noun    22 0.62857143
+## 10 Adjective      Verb     5 0.14285714
+## # ... with 109 more rows
+
+word_pos_freq &lt;- titles_pos %&gt;% ungroup() %&gt;% count(word, pos) %&gt;% mutate(weight = n / sum(n))
+
+generate_title &lt;- function() {
+
+  new_title &lt;- c(&quot;the&quot;, &quot;one&quot;)
+  while(new_title[length(new_title)] != &quot;EOL&quot;) {
+    # print(new_title[length(new_title)])
+    new_title &lt;- c(new_title, 
+                   pos_transitions %&gt;% 
+                     filter(pos == new_title[length(new_title)]) %&gt;% 
+                     sample_n(size = 1, weight = weight) %&gt;% 
+                     pull(nxt))
+  }
+
+  new_title %&gt;% enframe() %&gt;% 
+    left_join(word_pos_freq, by = c(&quot;value&quot; = &quot;pos&quot;)) %&gt;% 
+    mutate(weight = ifelse(is.na(weight), 1, weight)) %&gt;% 
+    group_by(name) %&gt;% sample_n(size = 1, weight = weight) %&gt;% 
+    mutate(word = ifelse(is.na(word), value, word)) %&gt;% 
+    filter(word != &quot;EOL&quot;) %&gt;% ungroup() %&gt;% 
+    summarize(title = paste(word, collapse = &quot; &quot;)) %&gt;% 
+    pull(title) %&gt;% gsub(&quot; &#39;s &quot;, &quot;&#39;s &quot;, .) %&gt;% 
+    str_to_title() %&gt;% gsub(&quot;Pbs&quot;, &quot;PBS&quot;, .)
+}
+generate_title()
+## [1] &quot;The One With The Stain Work&quot;
+
+replicate(5, generate_title())
+## [1] &quot;The One With Joey Leaves Where To Husband Apothecary Car Cookies&quot;      
+## [2] &quot;The One In Chandler&#39;s The Birth&quot;                                       
+## [3] &quot;The One With The Wedding&quot;                                              
+## [4] &quot;The One With All The Tunnel Teeth Fridge Rats Baby Work Back 1 Parties&quot;
+## [5] &quot;The One Where Phoebe&quot;</code></pre>
