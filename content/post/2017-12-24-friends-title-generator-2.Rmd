@@ -2,7 +2,6 @@
 title: "Friends Title Generator, Part 2: parts of speech"
 author: "Jesse Tweedle"
 date: '2017-12-24'
-draft: true
 slug: friends-title-generator-2
 description: "This post includes a R code script to generate Friends episode titles, focusing on using parts of speech."
 tags: ["r", "friends", "tidytext", "nlp", "markov model"]
