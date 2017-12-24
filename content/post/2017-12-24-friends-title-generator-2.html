@@ -216,21 +216,24 @@ generate_title &lt;- function() {
     pull(title) %&gt;% 
     gsub(&quot; &#39;s &quot;, &quot;&#39;s &quot;, .) %&gt;%  # stick the possesive back on its noun
     str_to_title() %&gt;%
-    gsub(&quot;Pbs&quot;, &quot;PBS&quot;, .) # in case we picked PBS.
+    gsub(&quot;Pbs&quot;, &quot;PBS&quot;, .) %&gt;% 
+    gsub(&quot;C.h.e.e.s.e&quot;, &quot;C.H.E.E.S.E.&quot;, .)# in case we picked PBS.
 }</code></pre>
 </div>
 <div id="now-make-a-pos-title-r" class="section level2">
 <h2>Now make a pos title, R!</h2>
-<pre class="r"><code>generate_title()
-## [1] &quot;The One With Part Part&quot;</code></pre>
+<pre class="r"><code>generate_title() 
+## [1] &quot;The One With Chandler&#39;s Morning&#39;s Party Have&quot;</code></pre>
 <p>Dang, I hope these are good. But they’re generated when Netlify builds the site so 🤷‍♀️.</p>
 <p>And five more, for fun:</p>
 <pre class="r"><code>replicate(5, generate_title())
-## [1] &quot;The One Where Chandler Runs&quot; &quot;The One With Chandler&#39;s 1&quot;  
-## [3] &quot;The One With Rachel&quot;         &quot;The One Hundredth&quot;          
-## [5] &quot;The One With The Lesbian&quot;</code></pre>
+## [1] &quot;The One With The 1&quot;                                                 
+## [2] &quot;The One With Armadillo&#39;s Cookies&quot;                                   
+## [3] &quot;The One With The Party&quot;                                             
+## [4] &quot;The One Where They&#39;re They&#39;re They&#39;re Have Moves Everybody Proposes&quot;
+## [5] &quot;The One Where Monica Monkey&quot;</code></pre>
 <p>And one randomly generated header title:</p>
 </div>
-<div id="the-one-in-chandlers-late-kissing-thunder" class="section level1">
-<h1>The One In Chandler’s Late Kissing Thunder</h1>
+<div id="the-one-with-frank-speaks-the-wedding" class="section level1">
+<h1>The One With Frank Speaks The Wedding</h1>
 </div>

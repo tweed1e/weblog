@@ -155,14 +155,15 @@ generate_title <- function() {
     pull(title) %>% 
     gsub(" 's ", "'s ", .) %>%  # stick the possesive back on its noun
     str_to_title() %>%
-    gsub("Pbs", "PBS", .) # in case we picked PBS.
+    gsub("Pbs", "PBS", .) %>% 
+    gsub("C.h.e.e.s.e", "C.H.E.E.S.E.", .)# in case we picked PBS.
 }
 ```
 
 ## Now make a pos title, R!
 
 ``` {r}
-generate_title()
+generate_title() 
 ```
 
 Dang, I hope these are good. But they're generated when Netlify builds the site so `r emo::ji('woman_shrugging')`.
