@@ -25,6 +25,16 @@ titles_pos <- title_words %>%
     TRUE ~ pos
   )) 
 
+# # what's the most frequent title structure?
+# titles_pos %>% 
+#   group_by(season, episode) %>%
+#   mutate(pos = ifelse(lineno<=3, word, pos)) %>% 
+#   summarize(title = paste0(word, collapse = " "),
+#             pos = paste0(pos, collapse = " ")) %>% 
+#   group_by(pos) %>% count(sort = TRUE)
+
+
+
 pos_transitions <- titles_pos %>% 
   group_by(season, episode) %>%
   filter(lineno >= 2) %>% 
@@ -38,10 +48,11 @@ pos_transitions <- titles_pos %>%
 
 pos_transitions
 
+
+
 word_pos_freq <- titles_pos %>% ungroup() %>% count(word, pos) %>% mutate(weight = n / sum(n))
 
-generate_title <- function() {
-
+generate_structure <- function() {
   new_title <- c("the", "one")
   while(new_title[length(new_title)] != "EOL") {
     # print(new_title[length(new_title)])
@@ -51,6 +62,13 @@ generate_title <- function() {
                      sample_n(size = 1, weight = weight) %>% 
                      pull(nxt))
   }
+  new_title
+}
+# generate_structure()
+# xxx
+generate_title <- function() {
+
+  new_title <- generate_structure()
 
   new_title %>% enframe() %>% 
     left_join(word_pos_freq, by = c("value" = "pos")) %>% 
