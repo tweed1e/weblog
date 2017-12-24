@@ -10,7 +10,7 @@ categories: ["r", "friends"]
 
 
 <p>To fulfill my lifelong desire to write Friends scripts, I’ll start by writing a Friends episode title. By that I mean a script that writes a Friends episode title. If you’re like me, you want to be creative, but I want to study artists and writers and distill their creativity into a recipe, and then just repeat it over and over. Isn’t that how artistic success works?</p>
-<p>Start with episode data from the first <a href="2017-12-18-rvest-friends-episodes.html">Friends post</a>. We <code>rvest</code>ed a bunch of stuff from the <a href="http://www.imdb.com/title/tt0108778/">Friends IMDB</a>.</p>
+<p>Start with episode data from the first <a href="/post/2017-12-18-rvest-friends-episodes/">Friends post</a>. We <code>rvest</code>ed a bunch of stuff from the <a href="http://www.imdb.com/title/tt0108778/">Friends IMDB</a>.</p>
 <pre class="r"><code>titles &lt;- werfriends::friends_episodes %&gt;% as_tibble() %&gt;%
   select(-director, -writers)
 titles
@@ -54,7 +54,7 @@ title_words %&gt;%
 ##  9  wedding     9
 ## 10     dies     6
 ## # ... with 256 more rows</code></pre>
-<p>Now we know the most important thing. Although character names don’t seem to have an <a href="2017-12-18-post-selection-inference-on-friends-titles-in-r.html">effect on episode success</a>,they’re obviously the most popular title words. On the other hand, I suppose people get married and people die pretty often in a sitcom.</p>
+<p>Now we know the most important thing. Although character names don’t seem to have an <a href="/post/2017-12-22-post-selection-inference-on-friends-titles-in-r/">effect on episode success</a>,they’re obviously the most popular title words. On the other hand, I suppose people get married and people die pretty often in a sitcom.</p>
 <pre class="r"><code># ok, now we know what&#39;s important
 # the characters, weddings, people and things dying.
 titles %&gt;% filter(grepl(&quot;dies&quot;, title, ignore.case = TRUE))
@@ -96,14 +96,14 @@ titles %&gt;% filter(grepl(&quot;dies&quot;, title, ignore.case = TRUE))
   new_title[-length(new_title)] %&gt;% paste(collapse = &quot; &quot;) %&gt;% stringr::str_to_title()
 }
 generate_title()
-## [1] &quot;The One With The Candy&quot;</code></pre>
+## [1] &quot;The One With Phoebe&#39;s Birthday Dinner&quot;</code></pre>
 <p>Yeaaa! Here’s a few more:</p>
 <pre class="r"><code>replicate(5, generate_title())
-## [1] &quot;The One Where Chandler Can&#39;t Remember Which Sister Babysits&quot;
-## [2] &quot;The One In A Baby Part One With Phoebe&#39;s Uterus&quot;            
-## [3] &quot;The One At The Ultimate Fighting Champion&quot;                  
-## [4] &quot;The One With The Birth Mother&quot;                              
-## [5] &quot;The One Where Monica&quot;</code></pre>
+## [1] &quot;The One Where Joey Dates&quot;                               
+## [2] &quot;The One With Ross Got High&quot;                             
+## [3] &quot;The One Where Ross Can&#39;t Remember Which Sister Babysits&quot;
+## [4] &quot;The One With Monica&#39;s Cousin&quot;                           
+## [5] &quot;The One Where Joey And Rachel Goes Back To Party&quot;</code></pre>
 <p>Problem: since this is based on only 236 titles, it tends to generate titles that already exist. E.g., there is only one time the word ‘George’ shows up in a title, so anytime the title generator hits ‘The One With George’, the next word will always be ‘Stephanopolous’, and then it will always end.</p>
 <p>We can try to fix this in the next installment, by using the <code>tidytext::parts_of_speech</code> dataset to generate sentence structures and then populate them with words, e.g., <code>&quot;the one where [noun] [verb]&quot;</code>.</p>
 </div>

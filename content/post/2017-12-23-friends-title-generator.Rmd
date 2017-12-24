@@ -16,7 +16,7 @@ library(tidytext)
 
 To fulfill my lifelong desire to write Friends scripts, I'll start by writing a Friends episode title. By that I mean a script that writes a Friends episode title. If you're like me, you want to be creative, but I want to study artists and writers and distill their creativity into a recipe, and then just repeat it over and over. Isn't that how artistic success works? 
 
-Start with episode data from the first [Friends post](2017-12-18-rvest-friends-episodes.html). We `rvest`ed a bunch of stuff from the [Friends IMDB](http://www.imdb.com/title/tt0108778/).
+Start with episode data from the first [Friends post](/post/2017-12-18-rvest-friends-episodes/). We `rvest`ed a bunch of stuff from the [Friends IMDB](http://www.imdb.com/title/tt0108778/).
 
 ``` {r}
 titles <- werfriends::friends_episodes %>% as_tibble() %>%
@@ -39,7 +39,7 @@ title_words %>%
   count(word, sort = TRUE)
 ```
 
-Now we know the most important thing. Although character names don't seem to have an [effect on episode success](2017-12-18-post-selection-inference-on-friends-titles-in-r.html),they're obviously the most popular title words. On the other hand, I suppose people get married and people die pretty often in a sitcom. 
+Now we know the most important thing. Although character names don't seem to have an [effect on episode success](/post/2017-12-22-post-selection-inference-on-friends-titles-in-r/),they're obviously the most popular title words. On the other hand, I suppose people get married and people die pretty often in a sitcom. 
 
 ``` {r}
 # ok, now we know what's important
