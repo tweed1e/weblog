@@ -1,11 +1,12 @@
 theme = "after-dark"
-baseURL = "/"
+baseURL = "https://jesse.tw/"
 languageCode = "en-us"
 title = ">Jesse Tweedle"
 theme_variant = "standard"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 description = "Here's my blog about econometrics, statistics, R, rstats, and programming. And TV shows."
 enableEmoji = true
+googleAnalytics = 'UA-84762908-2'
 
 [[menu.main]]
   name = "Home"
