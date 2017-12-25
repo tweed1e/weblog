@@ -115,4 +115,4 @@ parLapply_tbl <- function(.x, .f) {
 ```
 In this case, you can't dynamically `clusterExport` things until you get it right without going with the full `parallelsugar` approach (passing everything in `globalenv`, big and small). But the `closure` passes exactly what you need!
 
-(N.B. the `tryCatch` keeps you from hanging child processes without any to kill them.)
+(N.B. the `tryCatch` keeps you from hanging child processes without any way to kill them.)

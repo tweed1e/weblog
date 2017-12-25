@@ -7,7 +7,7 @@ description: 'An econometrics / data science curriculum vitae / resume. PhD, etc
 
 :nerd_face: Econometrics + data science.  [See full version](/files/tweedle_cv.pdf).
 
-----
+---
 
 ### Employment :money_with_wings:
 

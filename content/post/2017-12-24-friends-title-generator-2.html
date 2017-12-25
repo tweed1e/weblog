@@ -86,7 +86,7 @@ parts_of_speech
 ## #   All_PoS_SUBTLEX &lt;chr&gt;, All_freqs_SUBTLEX &lt;chr&gt;</code></pre>
 </div>
 <div id="apply-parts-of-speech-data-and-find-pos-pos-transition-probabilities" class="section level2">
-<h2>Apply parts of speech data, and find <code>pos-&gt;pos</code> transition probabilities</h2>
+<h2>Apply parts of speech data, and find pos-&gt;pos transition probabilities</h2>
 <pre class="r"><code># join parts_of_speech data to our title_words
 titles_pos &lt;- title_words %&gt;% 
   left_join(parts_of_speech %&gt;% select(word = Word, pos = Dom_PoS_SUBTLEX)) %&gt;%
@@ -223,17 +223,17 @@ generate_title &lt;- function() {
 <div id="now-make-a-pos-title-r" class="section level2">
 <h2>Now make a pos title, R!</h2>
 <pre class="r"><code>generate_title() 
-## [1] &quot;The One With Chandler&#39;s Morning&#39;s Party Have&quot;</code></pre>
+## [1] &quot;The One Where Ross&#39;s Part Dress&quot;</code></pre>
 <p>Dang, I hope these are good. But they’re generated when Netlify builds the site so 🤷‍♀️.</p>
 <p>And five more, for fun:</p>
 <pre class="r"><code>replicate(5, generate_title())
-## [1] &quot;The One With The 1&quot;                                                 
-## [2] &quot;The One With Armadillo&#39;s Cookies&quot;                                   
-## [3] &quot;The One With The Party&quot;                                             
-## [4] &quot;The One Where They&#39;re They&#39;re They&#39;re Have Moves Everybody Proposes&quot;
-## [5] &quot;The One Where Monica Monkey&quot;</code></pre>
+## [1] &quot;The One Where Joey&#39;s Sharks&#39;s Test Where All Part&quot;               
+## [2] &quot;The One With The Inappropriate Nap&#39;s Party With Paul Finds Where&quot;
+## [3] &quot;The One Where Ross&#39;s Rosita Joey&#39;s 1 Dad Night Tells&quot;            
+## [4] &quot;The One With Phoebe Dies Kiss&quot;                                   
+## [5] &quot;The One With The Brain Crosses The Part Ski&quot;</code></pre>
 <p>And one randomly generated header title:</p>
 </div>
-<div id="the-one-with-frank-speaks-the-wedding" class="section level1">
-<h1>The One With Frank Speaks The Wedding</h1>
+<div id="the-one-with-dates" class="section level1">
+<h1>The One With Dates</h1>
 </div>

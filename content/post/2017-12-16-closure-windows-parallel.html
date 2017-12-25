@@ -106,5 +106,5 @@ stopCluster(cl)</code></pre>
   .x
 }</code></pre>
 <p>In this case, you can’t dynamically <code>clusterExport</code> things until you get it right without going with the full <code>parallelsugar</code> approach (passing everything in <code>globalenv</code>, big and small). But the <code>closure</code> passes exactly what you need!</p>
-<p>(N.B. the <code>tryCatch</code> keeps you from hanging child processes without any to kill them.)</p>
+<p>(N.B. the <code>tryCatch</code> keeps you from hanging child processes without any way to kill them.)</p>
 </div>

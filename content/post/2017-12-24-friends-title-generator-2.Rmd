@@ -53,7 +53,7 @@ parts_of_speech <- read_tsv("SUBTLEX-US_frequency_list_with_PoS_information_fina
 parts_of_speech
 ```
 
-## Apply parts of speech data, and find `pos->pos` transition probabilities
+## Apply parts of speech data, and find pos->pos transition probabilities
 
 ``` {r}
 # join parts_of_speech data to our title_words
