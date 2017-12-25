@@ -1,5 +1,5 @@
 theme = "after-dark"
-baseURL = "https://jesse.tw/"
+baseURL = "/"
 languageCode = "en-us"
 title = ">Jesse Tweedle"
 theme_variant = "standard"
