@@ -6,7 +6,7 @@ slug: thank-you-blogdown-ppl
 categories: ["r", "blogdown"]
 tags: ["thx", "links"]
 description: 'These are blogdown things I found helpful.'
-image: "https://jesse.tw/images/emoji-nerd-3d.jpg"
+image: "https://jesse.tw/images/circle-arrows.png"
 ---
 
 Hardest problem: understanding Hugo structures / getting a theme I'm happy with. Easiest problems: Netlify, emoji, gifs, actually writing posts (ty [blogdown](https://bookdown.org/yihui/blogdown/)). A list of things I found useful when making this blog. 

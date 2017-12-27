@@ -6,6 +6,7 @@ slug: friends-time-series-ggplots
 categories: ["r", "friends"]
 tags: ["r", "ggplot", "friends", "imdb", "dataviz"]
 description: 'A Friends time series #rstats ggplot that tries to give you more questions than answers.'
+image: "https://jesse.tw/images/circle-arrows.png"
 ---
 
 ### I don't design to answer questions, I design to ask them[^note_call]
