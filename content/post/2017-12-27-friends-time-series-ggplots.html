@@ -1,0 +1,81 @@
+---
+title: "A data viz that asks questions: Friends time series ggplots"
+author: "Jesse Tweedle"
+date: '2017-12-27'
+slug: friends-time-series-ggplots
+categories: ["r", "friends"]
+tags: ["r", "ggplot", "friends", "imdb", "dataviz"]
+description: 'A Friends time series #rstats ggplot that tries to give you more questions than answers.'
+---
+
+
+
+<div id="i-dont-design-to-answer-questions-i-design-to-ask-themnote_call" class="section level3">
+<h3>I don’t design to answer questions, I design to ask them<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></h3>
+<p>There are an incredible range of data visualizations. They’re great, really. Sometimes they are very pretty pictures. Which is great, unless the goal wasn’t to draw a pretty picture.</p>
+<!-- >If all you [the dataviz expert] have is a hammer [webgl/d3/gg], every problem's a nail.  -->
+<!-- The end result of the hammering at dataviz is a lot of over-development---I don't need a map of some statistic that correlates almost exactly with population. _I already know NY and LA are the biggest cities in America._ -->
+<p>But I find the most memorable (beyond “wow cool, next”) data visualizations take the Scher approach: the readers don’t find answers, <strong>they find questions.</strong> The design makes them go to the data themselves, or start looking up other articles or explanations or wikipedia to figure out what’s going on (sometimes on a completely different topic).</p>
+</div>
+<div id="how-to-give-an-answer-and-then-give-a-question" class="section level2">
+<h2>How to: give an answer, and then give a question</h2>
+<p>My question: how do Friends ratings vary over time? I want to show that data, but I also want the reader to be able to explore for other, related things they’re might be interested in, even in a static plot. There’s no telling what a reader will come away with. Trust them.</p>
+<p>The Friends IMDB data were <code>rvest</code>ed from IMDB (<a href="/post/2017-12-18-rvest-friends-episodes/">see this post</a>). A quick look showed there were some serious outliers; the positive ones were the series finale (a two-parter) and other random ones I liked (e.g., <em>The One With The Embryos</em>!). But the eps with extraordinarily low ratings weren’t ones I particularly remembered, and they seemed to show up around the 20th episode in the season. <em>Why?</em> It turns out they were f—king <strong>clip shows</strong>. I want to call those out in the plot. (The annotations also make it clear that each point is an episode.)</p>
+<p><img src="/post/2017-12-27-friends-time-series-ggplots_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
+<p>The seasons are coloured (default ggplot scale, although you may want to try others to handle accessibility issues) because it was difficult to distinguish between the season changes. With this, you can tell (in most seasons) that the season finale is one of the most popular. The <code>geom_smooth</code> with standard errors gives you an idea of where the outliers are in each season.</p>
+</div>
+<div id="questions-i-asked-myself-after-doing-this" class="section level2">
+<h2>Questions I asked myself after doing this</h2>
+<p>Re: clip shows:</p>
+<ul>
+<li>Is there a reason clip shows are put at that stage in the season?</li>
+<li>Are they always at a date when no one’s watching TV, so they don’t want to waste actor/writer/director time on them?</li>
+<li>What are other shows doing at this time?</li>
+<li>What are the characteristics of clip shows like in other series?</li>
+<li>Why even bother, why not just have one less episode in that season (I mean, that Q answers itself: 🤑 🤑 🤑).</li>
+</ul>
+<p>Re: IMDB ratings</p>
+<ul>
+<li>Is there seasonality in the episode ratings?</li>
+<li>how do they compare with Nielsen ratings or viewership</li>
+<li>Would Nielsen ratings (available from <a href="https://en.wikipedia.org/wiki/List_of_Friends_episodes#Season_6_(1999%E2%80%932000)">wikipedia</a>!) would that answer the clip show questions above?</li>
+</ul>
+<p>E.g., <em>The One With Mac and C.H.E.E.S.E.</em> had a 10% drop in viewership from the eps before and after. What about other shows that week? It was April 13, 2000, what else happened? Did they pick that week to run it bc they knew no one would watch anything anyway?</p>
+<p>I have so many more questions about the machinery around TV shows, scripts and schedules. I hope this plot leaves you with questions too. Even if they’re about things totally unrelated to Friends IMDB ratings.</p>
+</div>
+<div id="other-ggoptions" class="section level2">
+<h2>Other ggoptions</h2>
+<p>A few other options from the <a href="http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html#6.%20Change">r-statistics.co</a> gg gallery could be useful here. Note that this isn’t really time series data (it’s chronological, but there aren’t dates or days of the week), but we’ll use the “Change” section anyway.</p>
+<p>First up the time series line plot above. But we could also do a calendar heatmap (but swap the calendar for seasons/episodes) or a season boxplot. Each have their advantages, but don’t accomplish what I’d like for this application.</p>
+<div id="calendar-heatmap" class="section level3">
+<h3>Calendar heatmap</h3>
+<p><img src="/post/2017-12-27-friends-time-series-ggplots_files/figure-html/unnamed-chunk-4-1.png" width="480" /></p>
+<p>Kinda cool. But you might need to watch out for rainbow heatmaps see a million complaints from <a href="https://www.youtube.com/watch?v=XjHzLUnHeM0&amp;t=5s">NASA</a> and academia (<a href="https://www.youtube.com/watch?v=XjHzLUnHeM0&amp;t=5s">youtube py talk</a> from Kristen Thyng](<a href="https://ocean.tamu.edu/people/faculty/thyngkristenm" class="uri">https://ocean.tamu.edu/people/faculty/thyngkristenm</a>)) and many blogs (<a href="https://agilescientific.com/blog/2017/12/14/no-more-rainbows">Agile</a> and <a href="https://eagereyes.org/basics/rainbow-color-map">Eager Eyes</a>, to name a few).</p>
+<p>So I changed the scale from go from grey (low) to red.</p>
+</div>
+<div id="boxplot" class="section level3">
+<h3>Boxplot</h3>
+<p>A great way to compare summary statistics across seasons is the box and whiskers plot via <code>geom_boxplot</code>. With a little help from <a href="https://stackoverflow.com/questions/33524669/labeling-outliers-of-boxplots-in-r">Stack Overflow answers</a> and <a href="https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html">ggrepel</a>, it’s pretty easy to label the outliers the same way—here, I used titles instead of episode numbers.</p>
+<p><img src="/post/2017-12-27-friends-time-series-ggplots_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
+<p>Great—a simple way to describe the median episode rating over the seasons that also gives more information for the interested reader. Here I should remember that it’s sometimes about what’s not there—I might leave a number or statistic out (by only plotting medians over time, instead of boxplots) because I know it’s not out of the ordinary, but a reader might have external information or priors that leads her to <em>expect</em> an outlier. If I don’t show the fact there isn’t one, she might not believe the data processing, the subsequent analysis, or the story I’m giving.</p>
+</div>
+<div id="others" class="section level3">
+<h3>Others</h3>
+<p>I have some other options, but they weren’t great for this data. For instance, you can use <code>facet_grid</code> for the time series plots instead:</p>
+<p><img src="/post/2017-12-27-friends-time-series-ggplots_files/figure-html/unnamed-chunk-6-1.png" width="480" /></p>
+<p>Or we could plot all the seasons on one plot, overtop of each other:</p>
+<p><img src="/post/2017-12-27-friends-time-series-ggplots_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
+<p>I styled them thick to get the overall impression of Season 1 relative to the other seasonal paths (it’s clearly near the bottom for any given episode), but it doesn’t have the lowest lows like the other seasons (aka no Season 1 clip show, thank god). You can also see Season 10 ending high and early at episode 18.</p>
+</div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>I’m still learning. I can’t tell what people are going to like or learn from. Across the spectrum of readers (more or less topic knowledge, more or less dataviz experience, more or less statistics knowledge), I can’t tell what appeals to each group.</p>
+<p>Sometimes I just <em>do</em> just want to give an answer, other times I just want to make a pretty picture, but the most satisfying plots are ones that keep me asking questions. I hope if I do more of these, I’ll get better 📈 and better 📈.</p>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Inspired by Paula Scher: “I’m not making something designed to answer questions. It’s more designed to raise them”, from <a href="http://www.imdb.com/title/tt6512562/">Abstract S1E6 “Paula Scher: Graphic Design”</a>, available on Netflix.<a href="#fnref1">↩</a></p></li>
+</ol>
+</div>

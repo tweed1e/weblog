@@ -1,0 +1,181 @@
+---
+title: "A data viz that asks questions: Friends time series ggplots"
+author: "Jesse Tweedle"
+date: '2017-12-27'
+slug: friends-time-series-ggplots
+categories: ["r", "friends"]
+tags: ["r", "ggplot", "friends", "imdb", "dataviz"]
+description: 'A Friends time series #rstats ggplot that tries to give you more questions than answers.'
+---
+
+### I don't design to answer questions, I design to ask them[^note_call]
+
+There are an incredible range of data visualizations. They're great, really. Sometimes they are very pretty pictures. Which is great, unless the goal wasn't to draw a pretty picture. 
+
+<!-- >If all you [the dataviz expert] have is a hammer [webgl/d3/gg], every problem's a nail.  -->
+<!-- The end result of the hammering at dataviz is a lot of over-development---I don't need a map of some statistic that correlates almost exactly with population. _I already know NY and LA are the biggest cities in America._ -->
+
+But I find the most memorable (beyond "wow cool, next") data visualizations take the Scher approach: the readers don't find answers, **they find questions.** The design makes them go to the data themselves, or start looking up other articles or explanations or wikipedia to figure out what's going on (sometimes on a completely different topic).
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, fig.height = 4, fig.width = 8)
+library(tidyverse)
+library(ggplot2)
+library(ggrepel)
+library(scales)
+# library(werfriends)
+```
+
+## How to: give an answer, and then give a question
+
+``` {r include = FALSE}
+episodes <- werfriends::friends_episodes %>% select(-director, -writers)
+episodes
+```
+
+My question: how do Friends ratings vary over time? I want to show that data, but I also want the reader to be able to explore for other, related things they're might be interested in, even in a static plot. There's no telling what a reader will come away with. Trust them. 
+
+The Friends IMDB data were `rvest`ed from IMDB ([see this post](/post/2017-12-18-rvest-friends-episodes/)). A quick look showed there were some serious outliers; the positive ones were the series finale (a two-parter) and other random ones I liked (e.g., *The One With The Embryos*!). But the eps with extraordinarily low ratings weren't ones I particularly remembered, and they seemed to show up around the 20th episode in the season. *Why?* It turns out they were f---king **clip shows**. I want to call those out in the plot. (The annotations also make it clear that each point is an episode.)
+
+``` {r, include = FALSE}
+e <- episodes %>% 
+  group_by(season, episode) %>% 
+  mutate(SE = paste0(ifelse(season > 9, "", " "), 
+                     season, 
+                     ifelse(episode > 9, "", "0"), episode, collapse = "")) %>%
+  arrange(SE) %>% ungroup() %>% mutate(SE = factor(SE)) %>% 
+  mutate(season = factor(str_pad(season, width = 2), 
+                         levels = c(str_pad(c(1:10), width = 2), "smooth"))) %>% 
+  group_by(season) %>%
+  mutate(rating_out = ifelse(rating == min(rating) | rating == max(rating), rating, NA)) %>%
+  group_by(season, episode) %>% 
+  mutate(label = paste0("S", trimws(season), "E", episode, collapse = ""),
+         label = ifelse(label %in% c("S4E21", "S6E20", "S7E21", "S8E19", "S9E10", "S10E10"), 
+                        label, 
+                        "")) %>% 
+  ungroup()
+
+p <- ggplot(e, aes(SE, rating, group = season, colour = season)) + 
+  geom_smooth(aes(colour = "smooth")) + 
+  geom_line() + geom_point(aes(SE, rating_out)) +
+  scale_colour_manual(values = c(hue_pal()(10), "#dddddd")) +
+  guides(colour = FALSE) + 
+  scale_x_discrete(breaks = paste(str_pad(c(1:10), width = 2), "01", sep = ""), 
+                   labels = paste0("S:", 1:10))  + 
+  theme_minimal() + 
+  geom_text_repel(aes(label = e$label)) + 
+  labs(title = "Friends IMDB ratings over time", 
+       subtitle = "Clip shows labelled. lmao", 
+       x = "Season, episode", y = "Rating")
+```
+
+``` {r, echo = FALSE, message = FALSE, warning = FALSE}
+p 
+```
+
+The seasons are coloured (default ggplot scale, although you may want to try others to handle accessibility issues) because it was difficult to distinguish between the season changes. With this, you can tell (in most seasons) that the season finale is one of the most popular. The `geom_smooth` with standard errors gives you an idea of where the outliers are in each season.
+
+## Questions I asked myself after doing this
+
+Re: clip shows:
+
+- Is there a reason clip shows are put at that stage in the season? 
+- Are they always at a date when no one's watching TV, so they don't want to waste actor/writer/director time on them? 
+- What are other shows doing at this time? 
+- What are the characteristics of clip shows like in other series? 
+- Why even bother, why not just have one less episode in that season (I mean, that Q answers itself: `r emo::ji('money_mouth_face')` `r emo::ji('money_mouth_face')` `r emo::ji('money_mouth_face')`).
+
+Re: IMDB ratings
+
+- Is there seasonality in the episode ratings?
+- how do they compare with Nielsen ratings or viewership
+- Would Nielsen ratings (available from [wikipedia](https://en.wikipedia.org/wiki/List_of_Friends_episodes#Season_6_(1999%E2%80%932000))!) would that answer the clip show questions above?
+
+E.g., *The One With Mac and C.H.E.E.S.E.* had a 10% drop in viewership from the eps before and after. What about other shows that week? It was April 13, 2000, what else happened? Did they pick that week to run it bc they knew no one would watch anything anyway?
+
+I have so many more questions about the machinery around TV shows, scripts and schedules. I hope this plot leaves you with questions too. Even if they're about things totally unrelated to Friends IMDB ratings.
+
+## Other ggoptions
+
+A few other options from the [r-statistics.co](http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html#6.%20Change) gg gallery could be useful here. Note that this isn't really time series data (it's chronological, but there aren't dates or days of the week), but we'll use the "Change" section anyway.
+
+First up the time series line plot above. But we could also do a calendar heatmap (but swap the calendar for seasons/episodes) or a season boxplot. Each have their advantages, but don't accomplish what I'd like for this application. 
+
+### Calendar heatmap
+
+``` {r, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 5, fig.width = 5}
+ggplot(episodes, aes(season, episode, fill = rating)) + 
+  geom_tile(colour = "white") + 
+  scale_fill_gradient(low="grey", high="red") +
+  scale_x_continuous(breaks = c(1:10)) + 
+  labs(x="Season",
+       y="Episode",
+       title = "Friends episode rating calendar heatmap", 
+       fill="Rating")
+```
+
+Kinda cool. But you might need to watch out for rainbow heatmaps see a million complaints from [NASA](https://www.youtube.com/watch?v=XjHzLUnHeM0&t=5s) and academia ([youtube py talk](https://www.youtube.com/watch?v=XjHzLUnHeM0&t=5s) from Kristen Thyng](https://ocean.tamu.edu/people/faculty/thyngkristenm)) and many blogs ([Agile](https://agilescientific.com/blog/2017/12/14/no-more-rainbows) and [Eager Eyes](https://eagereyes.org/basics/rainbow-color-map), to name a few).
+
+So I changed the scale from go from grey (low) to red.
+
+### Boxplot
+
+A great way to compare summary statistics across seasons is the box and whiskers plot via `geom_boxplot`. With a little help from [Stack Overflow answers](https://stackoverflow.com/questions/33524669/labeling-outliers-of-boxplots-in-r) and [ggrepel](https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html), it's pretty easy to label the outliers the same way---here, I used titles instead of episode numbers.
+
+``` {r, echo = FALSE, message = FALSE, warning = FALSE}
+is_outlier <- function(x) {
+  return(x < quantile(x, 0.25) - 1.5 * IQR(x) | x > quantile(x, 0.75) + 1.5 * IQR(x))
+}
+
+e %>% 
+  group_by(season) %>% 
+  ggplot(aes(season, rating, group = factor(season))) +
+  geom_boxplot() + 
+  geom_text_repel(aes(label = ifelse(is_outlier(rating), title, "")), size = 3) +
+  labs(x="Season",
+     y="Rating",
+     title = "Friends episode ratings by season")
+```
+
+Great---a simple way to describe the median episode rating over the seasons that also gives more information for the interested reader. Here I should remember that it's sometimes about what's not there---I might leave a number or statistic out (by only plotting medians over time, instead of boxplots) because I know it's not out of the ordinary, but a reader might have external information or priors that leads her to *expect* an outlier. If I don't show the fact there isn't one, she might not believe the data processing, the subsequent analysis, or the story I'm giving.
+
+### Others
+
+I have some other options, but they weren't great for this data. For instance, you can use `facet_grid` for the time series plots instead:
+
+``` {r echo = FALSE, message = FALSE, warning = FALSE, fig.height = 5, fig.width = 5}
+ggplot(e, aes(episode, rating, group = season)) + geom_line() + geom_point() + 
+  facet_grid(season ~ ., scales = "fixed") +
+  labs(x="Episode",
+     y="Rating",
+     title = "Friends episode ratings by season")
+```
+
+Or we could plot all the seasons on one plot, overtop of each other:
+
+``` {r echo = FALSE, message = FALSE, warning = FALSE, fig.height = 5, fig.width = 8}
+colours <- c(rep("grey", 9), hue_pal()(1)) # fix colours so that everyone but the "last" is the same
+e$season <- e$season[, drop = TRUE]
+
+# also reorder factors so the highlighted one is drawn last.
+e %>% 
+  mutate(season = factor(season, levels = levels(season)[c(2:8, 9:10, 1)])) %>% 
+  ggplot() + 
+    geom_line(aes(episode, rating, group = season, colour = season, size = 0.25)) + 
+    scale_colour_manual(values = colours) +
+  guides(colour = FALSE, size = FALSE) + 
+      labs(x="Episode",
+           y="Rating",
+           title = "Friends episode ratings by season",
+           subtitle = "Season 1 highlighted") #+ theme_minimal()
+```
+
+I styled them thick to get the overall impression of Season 1 relative to the other seasonal paths (it's clearly near the bottom for any given episode), but it doesn't have the lowest lows like the other seasons (aka no Season 1 clip show, thank god). You can also see Season 10 ending high and early at episode 18.
+
+## Conclusion
+
+I'm still learning. I can't tell what people are going to like or learn from. Across the spectrum of readers (more or less topic knowledge, more or less dataviz experience, more or less statistics knowledge), I can't tell what appeals to each group.
+
+Sometimes I just *do* just want to give an answer, other times I just want to make a pretty picture, but the most satisfying plots are ones that keep me asking questions. I hope if I do more of these, I'll get better `r emo::ji('chart_with_upwards_trend')` and better `r emo::ji('chart_with_upwards_trend')`.
+
+[^note_call]: Inspired by Paula Scher: "I'm not making something designed to answer questions. It's more designed to raise them", from [Abstract S1E6 "Paula Scher: Graphic Design"](http://www.imdb.com/title/tt6512562/), available on Netflix.

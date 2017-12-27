@@ -196,16 +196,16 @@ XCode style (c) Angel Garcia <angelgarcia.mail@gmail.com>
   font-style: italic;
 }
 
-.hack h1 {
+.hack h1, .hack h1 em {
   font-size: 5rem; font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,serif;
 }
 
-.hack h2 {
+.hack h2, .hack h2 em  {
   font-size: 2rem; font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,serif;
   padding:20px 0 5px
 }
 
-.hack h3 {
+.hack h3, .hack h3 em  {
   font-size: 1.5rem; font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,serif;
   padding:20px 0 5px
 }
