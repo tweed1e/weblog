@@ -44,7 +44,7 @@ footer time[datetime$="M"]:before {
 blockquote cite {
   display: block;
 }
-blockquote cite::before {
+blockquote cite:before {
    content: "\2014";
 }
 :target {
