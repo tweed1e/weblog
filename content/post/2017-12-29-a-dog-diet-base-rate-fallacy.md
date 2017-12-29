@@ -5,7 +5,7 @@ date: '2017-12-29'
 slug: a-dog-diet-base-rate-fallacy
 categories: ["dogs", "stats"]
 tags: ["dogs", "diet", base rate", "fallacy"]
-description: 'There are 70 million dogs in the US. Raw food diets are much more likely to cause salmonella infections in humans than dry (kibble) food diets.'
+description: 'There are 70 million dogs in the US. Those dogs on raw food diets are much more likely to cause salmonella infections in humans than on dry (kibble) food diets.'
 image: "https://jesse.tw/images/circle-arrows.png"
 ---
 
