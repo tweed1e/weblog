@@ -37,7 +37,7 @@ babynames %>%
   group_by(name, year) %>% summarize(n = sum(n)) %>% 
     ggplot(aes(x = year, y = n, group = name, colour = name)) + 
     geom_point() + geom_line() +
-    labs(title = "Jalen v Shaq as baby names", x = "year", y = "Number of babies") + 
+    labs(title = "Jalen v Shaq as baby names", x = "Year", y = "Number of babies") + 
     guides(fill=guide_legend(title="Name"))
 ```
 
