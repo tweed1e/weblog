@@ -1,0 +1,47 @@
+---
+title: 'Jalen v. Shaq as baby names'
+author: "Jesse Tweedle"
+date: '2018-01-27'
+slug: jalen-v-shaq
+categories: ["r"]
+tags: ["r", "nba", "babynames"]
+description: 'Was Jalen Rose really the first Jalen?'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, fig.height = 4, fig.width = 8)
+library(tidyverse)
+library(ggplot2)
+```
+
+Was [Jalen Rose](https://en.wikipedia.org/wiki/Jalen_Rose) really the first Jalen? He claims his mother was the first to make up the name, a combo of his father's (the [NBA player Jimmie Walker](https://en.wikipedia.org/wiki/Jimmy_Walker_(basketball,_born_1944))) and uncle's (Leonard) names. And now we see them everywhere: [Jalen Hurts](https://en.wikipedia.org/wiki/Jalen_Hurts) (the Alabama QB that was benched in the national title game a few weeks ago) and [Jalen Ramsey](https://en.wikipedia.org/wiki/Jalen_Ramsey) (Jags cornerback). Was he really? On the other hand, Shaq is an equally distinct name, what happened after he got famous?
+
+This project is almost one line. Get a dataset of babyname counts (via [Hadley's `babynames`](https://github.com/hadley/babynames)), filter for Jalen and Shaq(uille), and plot them over time. But first we'll see if there were any Jalens before he started at Michigan in 1991:
+
+``` {r}
+library(babynames)
+babynames %>% 
+  filter(name == "Jalen") %>% 
+  group_by(name, year) %>% 
+  summarize(n = sum(n))
+```
+
+Hmm. Jalen was born in 1973 but it doesn't show up until 1976. I'm guessing the `babynames` dataset is censored at 5 to preserve confidentiality or something. So he might've been the first! But unless his mother was promoting the name when he was 3, others invented 'Jalen' simultaneously. 
+
+But you can definitely see 'Jalen' uptick when he hit the national stage. What does the trend look like? How does it compare to a similarly famous and unique name?
+
+``` {r}
+babynames %>% 
+  filter(name %in% c("Jalen", "Shaquille")) %>% 
+  group_by(name, year) %>% summarize(n = sum(n)) %>% 
+    ggplot(aes(x = year, y = n, group = name, colour = name)) + 
+    geom_point() + geom_line() +
+    labs(title = "Jalen v Shaq as baby names", xlab = "year", ylab = "Number of babies") + 
+    guides(fill=guide_legend(title="Name"))
+```
+
+Daaaaaaaang Jalen `r emo::ji('100')`. #gtpwtw since 1991. Around 1992-3 Shaq looks just as popular, then ppl realize it's crazy to call your baby Shaquille, he's too famous! E.g., the only person who can name a baby Lebron is Lebron. (Err, wait! There were 6 Lebrons born in 1925?!)
+
+But Jalen sticks around and hits a maximum of `r babynames %>% filter(name == "Jalen") %>% group_by(name, year) %>% summarize(n = sum(n)) %>% pull(n) %>% max()` per year in 2000. He's slid off since then, but still, very impressive Jalen. 
+
+#1 in my babyname directory, #1 in my heart.
