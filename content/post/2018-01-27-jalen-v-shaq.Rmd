@@ -44,4 +44,4 @@ Daaaaaaaang Jalen `r emo::ji('100')`. #gtpwtw since 1991. Around 1992-3 Shaq loo
 
 But Jalen sticks around and hits a maximum of `r babynames %>% filter(name == "Jalen") %>% group_by(name, year) %>% summarize(n = sum(n)) %>% pull(n) %>% max()` per year in 2000. He's slid off since then, but still, very impressive Jalen. 
 
-#1 in my babyname directory, #1 in my heart.
+## \#1 in my babyname directory, #1 in my heart.
