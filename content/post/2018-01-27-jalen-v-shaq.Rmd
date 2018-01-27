@@ -6,6 +6,7 @@ slug: jalen-v-shaq
 categories: ["r"]
 tags: ["r", "nba", "babynames"]
 description: 'Was Jalen Rose really the first Jalen?'
+image: "https://jesse.tw/images/circle-arrows.png"
 ---
 
 ```{r setup, include=FALSE}
@@ -36,7 +37,7 @@ babynames %>%
   group_by(name, year) %>% summarize(n = sum(n)) %>% 
     ggplot(aes(x = year, y = n, group = name, colour = name)) + 
     geom_point() + geom_line() +
-    labs(title = "Jalen v Shaq as baby names", xlab = "year", ylab = "Number of babies") + 
+    labs(title = "Jalen v Shaq as baby names", x = "year", y = "Number of babies") + 
     guides(fill=guide_legend(title="Name"))
 ```
 
