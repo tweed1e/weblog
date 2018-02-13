@@ -1,7 +1,7 @@
 ---
 title: ">Jesse Tweedle" 
 author: "Jesse Tweedle"
-date: '2017-12-23'
+date: '2018-02-13'
 description: 'An econometrics / data science curriculum vitae / resume. PhD, etc.'
 ---
 
