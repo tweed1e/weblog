@@ -5,8 +5,9 @@ date: '2018-02-14'
 slug: parliament-gender
 categories: ["r"]
 tags: ["r", "canada", "parliament", "gender", "bias", "text analysis", "hansard"]
-description: 'A look at digital copies of Canadian parliamentary debates 1994--2017, showing gender imbalance in both number of speakers and pattern of speakers.'
+description: 'A look at digital copies of Canadian parliamentary debates 1994--2017, showing gender imbalance in both number of speakers and time pattern of speakers.'
 image: "https://jesse.tw/images/circle-arrows.png"
+draft: TRUE
 ---
 
 ```{r setup, include=FALSE}
@@ -20,18 +21,18 @@ knitr::opts_chunk$set(collapse = TRUE,
 
 ## Summary
 
-[(Click to skip to the important pictures.)](#dayplot)
-
 1. Women make up 20-25% of Parliament
 2. Only 8% of speakers in Parliament are female
 3. That spikes to 13% during "Statements by Members" (one minute statements) and "Oral Questions" (question period), and drops during routine government business
 4. Nice to have Trudeau's gender-balanced cabinet, but are female MPs left out of Parliament's day-to-day business?
 
+[(Click to skip to the important pictures.)](#dayplot)
+
 ## Motivation
 
 When it comes to equality, Canada likes to talk a big game. What really happens in Parliament? Of course Trudeau likes to play up his female cabinet (extra props go to Chrystia Freeland for not capitulating to that weird Belgian area that was [holding up the Canada-EU trade agreement](http://www.cbc.ca/news/politics/canada-eu-ceta-brussels-friday-1.3815332), and I hope she can handle [you-who-know and NAFTA too](http://www.cbc.ca/news/politics/freeland-nafta-fifth-round-prepare-for-worst-1.4412673), although she switched from trade to foreign affairs).
 
-Don't take anyone's word for it; we have data on gender and parliament. What does it say? On one hand, we just set a [record for female MPs in the 2015 election](https://en.wikipedia.org/wiki/Women_in_the_42nd_Canadian_Parliament)! On the other hand, that record is only 26%. Uh. Not great. But that's only part of the story. A gender-balance cabinet helps (Trudeau appointed 15 female ministers out of a 30 minister cabinet). *But what actually happens when parliament gets down to business?*
+But you don't need to take anyone's word for it; we have data on gender and parliament. What does it say? On one hand, we just set a [record for female MPs in the 2015 election](https://en.wikipedia.org/wiki/Women_in_the_42nd_Canadian_Parliament)! On the other hand, that record is still only 26%. Uh. Not great. But that's only part of the story. A gender-balance cabinet helps (Trudeau appointed 15 female ministers out of a 30 minister cabinet). *But what actually happens when parliament gets down to business?*
 
 ## The data: [https://openparliament.ca/](https://openparliament.ca/)
 
@@ -49,14 +50,14 @@ To get the data into R, you need to
 First, I didn't have postgres. So google [like mad](https://www.codementor.io/engineerapart/getting-started-with-postgresql-on-mac-osx-are8jcopb) and get super frustrated, then finally settle on this strat:
 
 ```
-jessetweedle:~ jessetweedle$ brew install postgresql
-jessetweedle:~ jessetweedle$ createdb -T template0 openparl
-jessetweedle:~ jessetweedle$ psql openparl < openparliament.public.sql
+$ brew install postgresql
+$ createdb -T template0 openparl
+$ psql openparl < openparliament.public.sql
 ```
 The first one installs postgresql; the next creates the database `openparl` that I'll put the data in, and the last one dumps the data I downloaded from the website into the database! Done and done. Now open `psql` and try to look at what's inside:
 
 ```
-jessetweedle:~ jessetweedle$ psql postgres
+$ psql postgres
 postgres-# \list
    Name    |    Owner     | Encoding |   Collate   |    Ctype    |       Access privileges       
 -----------+--------------+----------+-------------+-------------+-------------------------------
@@ -226,7 +227,7 @@ From our exploratory analysis before, we know that there is often a gendered tit
 ``` {r}
 name_time_gender <- name_time %>% 
   filter(who_en != "") %>%
-  filter(grepl("(Mr\\.|Mrs\\.|Miss)", x = who_en)) %>%
+  filter(grepl("(Mr\\.|Mrs\\.|Miss|Ms\\.)", x = who_en)) %>%
   mutate(gender = case_when(
     grepl("(Mr\\.)", x = who_en) ~ "M",
     grepl("(Mrs\\.|Ms\\.|Miss)", x = who_en) ~ "F",
@@ -267,7 +268,7 @@ name_time_gender %>%
   theme_minimal()
 ```
 
-Whoops. There's an obvious break in the series for Count---so something happened to the data collection or the structure of the hansard (it's less likely that parliament itself changed in that year). On the other hand, the frequency doesn't change, so it's unlikely to change our conclusions for gender imbalance. Just one thing to keep in mind for the future.
+Whoops. There's an obvious break in the series for Count---so something happened to the data collection or the structure of the hansard (it's less likely that parliament itself changed significantly at that time). On the other hand, the frequency doesn't change, so it's unlikely to change our conclusions for gender imbalance. Just one thing to keep in mind for the future.
 
 But really---`r name_time_gender %>% count(gender) %>% mutate(freq = n / sum(n)) %>% filter(gender == "F") %>% pull(freq) %>% scales::percent()` is pretty bad. That's much lower than the number of female MPs of around 20%. They're underrepresented, and the ones that are there aren't talking. Hmm. Is there more to the story?
 
