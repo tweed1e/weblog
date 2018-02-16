@@ -7,7 +7,6 @@ categories: ["r"]
 tags: ["r", "canada", "parliament", "gender", "bias", "text analysis", "hansard"]
 description: 'A look at digital copies of Canadian parliamentary debates 1994--2017, showing gender imbalance in both number of speakers and pattern of speakers.'
 image: "https://jesse.tw/images/circle-arrows.png"
-draft: TRUE
 ---
 
 ```{r setup, include=FALSE}

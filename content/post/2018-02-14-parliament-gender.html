@@ -7,7 +7,6 @@ categories: ["r"]
 tags: ["r", "canada", "parliament", "gender", "bias", "text analysis", "hansard"]
 description: 'A look at digital copies of Canadian parliamentary debates 1994--2017, showing gender imbalance in both number of speakers and pattern of speakers.'
 image: "https://jesse.tw/images/circle-arrows.png"
-draft: TRUE
 ---
 
 
@@ -155,13 +154,13 @@ han_df %&gt;% print(n = 5)
 han_df &lt;- han_df %&gt;% mutate(time = with_tz(time, &quot;America/Toronto&quot;))
 han_df %&gt;% sample_n(5) # an easy way to look at a random sample of observations instead of just the first 10
 ## # A tibble: 5 x 2
-##   time                who_en                                       
-##   &lt;dttm&gt;              &lt;chr&gt;                                        
-## 1 2003-02-03 14:20:00 Hon. Anne McLellan (Minister of Health, Lib.)
-## 2 2009-05-28 19:40:00 Hon. Gail Shea                               
-## 3 2011-03-22 11:20:00 Hon. Wayne Easter (Malpeque, Lib.)           
-## 4 2006-05-10 16:00:00 The Chair                                    
-## 5 2011-03-03 10:35:00 The Chair</code></pre>
+##   time                who_en                                          
+##   &lt;dttm&gt;              &lt;chr&gt;                                           
+## 1 2009-12-01 11:25:00 The Chair                                       
+## 2 2017-06-15 09:35:00 Hon. John McKay                                 
+## 3 2010-11-04 11:15:00 Hon. Keith Martin (Esquimalt—Juan de Fuca, Lib.)
+## 4 2007-05-17 20:50:00 Mr. Todd Russell                                
+## 5 2013-04-24 17:00:00 Mr. Bill Matthews</code></pre>
 <p>Ok, now we’re getting somewhere. I want to check two things: (1) what does the time distribution look like? and (2) can we get the gender of the MPs from names? Let’s leave (2): if you look at the names, you might be able to get gender with the titles (Mr. vs. Mrs.), but you’re also going to be dropping some ministers; this may bias our results because women are being overrepresented in the data relative to reality (until now, women are much less likely to be ministers). We’ll leave that problem to another day, and say these results provide an upper bound on the relative power of women.</p>
 <div id="cycles-of-activity" class="section level3">
 <h3>Cycles of activity</h3>
@@ -181,13 +180,13 @@ han_df %&gt;% sample_n(5) # an easy way to look at a random sample of observatio
     TRUE ~ &quot;X&quot;))
 name_time_gender %&gt;% sample_n(5)
 ## # A tibble: 5 x 4
-##   time                who_en                           hms    gender
-##   &lt;dttm&gt;              &lt;chr&gt;                            &lt;time&gt; &lt;chr&gt; 
-## 1 2002-06-17 11:30:00 The Acting Speaker (Mr. Bélair)  11:30  M     
-## 2 2012-10-04 12:10:00 Mr. Ed Holder                    12:10  M     
-## 3 2007-04-19 12:55:00 Mr. Harold Albrecht              12:55  M     
-## 4 2010-05-31 13:00:00 Mr. Malcolm Allen (Welland, NDP) 13:00  M     
-## 5 2013-06-04 09:50:00 Mr. Chungsen Leung               09:50  M</code></pre>
+##   time                who_en                              hms    gender
+##   &lt;dttm&gt;              &lt;chr&gt;                               &lt;time&gt; &lt;chr&gt; 
+## 1 2015-03-10 16:55:00 Mr. Rodney Weston (Saint John, CPC) 16:55  M     
+## 2 2017-02-14 16:20:00 Mr. John Aldag                      16:20  M     
+## 3 2016-12-05 16:00:00 Mr. Matthew Johnson                 16:00  M     
+## 4 2008-04-10 16:05:00 Mr. Mike Wallace                    16:05  M     
+## 5 2008-04-29 11:45:00 Mr. Don Johnson                     11:45  M</code></pre>
 Ok, that’s not bad; now what are the overall statistics?
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -228,7 +227,7 @@ M
 </tr>
 </tbody>
 </table>
-<p>Ugh. &lt;10%, even though there are &gt;20% female MPs. Does it change over time? We know 2015 was a record breaking election for female candidates; on the other hand, the previous record was 1993. So in between: 🤷🏿.</p>
+<p>Ugh. &lt;10%, even though there are &gt;20% female MPs. Does it change over time? We know 2015 was a record breaking election for female candidates; on the other hand, the previous record was 1993. So in between: 🤷‍♂️.</p>
 <p><img src="/post/2018-02-14-parliament-gender_files/figure-html/unnamed-chunk-10-1.png" width="768" /></p>
 <p>Whoops. There’s an obvious break in the series for Count—so something happened to the data collection or the structure of the hansard (it’s less likely that parliament itself changed in that year). On the other hand, the frequency doesn’t change, so it’s unlikely to change our conclusions for gender imbalance. Just one thing to keep in mind for the future.</p>
 <p>But really—7.8% is pretty bad. That’s much lower than the number of female MPs of around 20%. They’re underrepresented, and the ones that are there aren’t talking. Hmm. Is there more to the story?</p>
