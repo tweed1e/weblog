@@ -1,0 +1,355 @@
+---
+title: "Parliament's gender/power problem, pt. 1"
+author: "Jesse Tweedle"
+date: '2018-02-14'
+slug: parliament-gender
+categories: ["r"]
+tags: ["r", "canada", "parliament", "gender", "bias", "text analysis", "hansard"]
+description: 'A look at digital copies of Canadian parliamentary debates 1994--2017, showing gender imbalance in both number of speakers and pattern of speakers.'
+image: "https://jesse.tw/images/circle-arrows.png"
+draft: TRUE
+---
+
+
+
+<p>(Preface: I’m 🇨🇦 but idk anything about parliament and dk what a hansard was before I started this. So if you see something wrong, get the <a href="https://github.com/tweed1e/weblog/blob/master/content/post/2018-02-14-parliament-gender.Rmd">code from github</a> and diy!)</p>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<p><a href="#dayplot">(Click to skip to the important pictures.)</a></p>
+<ol style="list-style-type: decimal">
+<li>Women make up 20-25% of Parliament</li>
+<li>Only 8% of speakers in Parliament are female</li>
+<li>That spikes to 13% during “Statements by Members” (one minute statements) and “Oral Questions” (question period), and drops during routine government business</li>
+<li>Nice to have Trudeau’s gender-balanced cabinet, but are female MPs left out of Parliament’s day-to-day business?</li>
+</ol>
+</div>
+<div id="motivation" class="section level2">
+<h2>Motivation</h2>
+<p>When it comes to equality, Canada likes to talk a big game. What really happens in Parliament? Of course Trudeau likes to play up his female cabinet (extra props go to Chrystia Freeland for not capitulating to that weird Belgian area that was <a href="http://www.cbc.ca/news/politics/canada-eu-ceta-brussels-friday-1.3815332">holding up the Canada-EU trade agreement</a>, and I hope she can handle <a href="http://www.cbc.ca/news/politics/freeland-nafta-fifth-round-prepare-for-worst-1.4412673">you-who-know and NAFTA too</a>, although she switched from trade to foreign affairs).</p>
+<p>Don’t take anyone’s word for it; we have data on gender and parliament. What does it say? On one hand, we just set a <a href="https://en.wikipedia.org/wiki/Women_in_the_42nd_Canadian_Parliament">record for female MPs in the 2015 election</a>! On the other hand, that record is only 26%. Uh. Not great. But that’s only part of the story. A gender-balance cabinet helps (Trudeau appointed 15 female ministers out of a 30 minister cabinet). <em>But what actually happens when parliament gets down to business?</em></p>
+</div>
+<div id="the-data-httpsopenparliament.ca" class="section level2">
+<h2>The data: <a href="https://openparliament.ca/" class="uri">https://openparliament.ca/</a></h2>
+<p><a href="https://github.com/michaelmulley">Michael Mulley</a> (not a government employee, that would be too obvious) gathered all the parliament data and made a website! You can go to the site or the <a href="https://github.com/michaelmulley/openparliament">project’s github page</a> to see what’s up. There’s an API to access the data, but I had no idea how parliament works or what I was looking for, so I <a href="https://openparliament.ca/data-download/">downloaded a PostgreSQL</a> copy of the database to go through on my own. It’s about 4GB.</p>
+<div id="setup-postgres-and-the-database" class="section level3">
+<h3>Setup postgres and the database</h3>
+<p>To get the data into R, you need to</p>
+<ol style="list-style-type: decimal">
+<li>setup a local postgres database,</li>
+<li>copy the table to the database,</li>
+<li>connect to the database from R</li>
+<li>and read the table you’d like</li>
+</ol>
+<p>First, I didn’t have postgres. So google <a href="https://www.codementor.io/engineerapart/getting-started-with-postgresql-on-mac-osx-are8jcopb">like mad</a> and get super frustrated, then finally settle on this strat:</p>
+<pre><code>jessetweedle:~ jessetweedle$ brew install postgresql
+jessetweedle:~ jessetweedle$ createdb -T template0 openparl
+jessetweedle:~ jessetweedle$ psql openparl &lt; openparliament.public.sql</code></pre>
+<p>The first one installs postgresql; the next creates the database <code>openparl</code> that I’ll put the data in, and the last one dumps the data I downloaded from the website into the database! Done and done. Now open <code>psql</code> and try to look at what’s inside:</p>
+<pre><code>jessetweedle:~ jessetweedle$ psql postgres
+postgres-# \list
+   Name    |    Owner     | Encoding |   Collate   |    Ctype    |       Access privileges       
+-----------+--------------+----------+-------------+-------------+-------------------------------
+ openparl  | jessetweedle | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ postgres  | jessetweedle | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ template0 | jessetweedle | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/jessetweedle              +
+           |              |          |             |             | jessetweedle=CTc/jessetweedle
+ template1 | jessetweedle | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/jessetweedle              +
+           |              |          |             |             | jessetweedle=CTc/jessetweedle
+(4 rows)</code></pre>
+<p>It’s there! It worked ffs! Next, connect to the database and list contents (I’ll show only a few results)</p>
+<pre><code>postgres-# \connect openparl
+openparl-# \dt
+                            List of relations
+ Schema |                   Name                   | Type  |    Owner     
+--------+------------------------------------------+-------+--------------
+ public | accounts_logintoken                      | table | jessetweedle
+ public | accounts_user                            | table | jessetweedle
+ public | activity_activity                        | table | jessetweedle
+ public | alerts_politicianalert                   | table | jessetweedle
+...(lots more)...
+(64 rows)</code></pre>
+<p>It turns out the one we’re looking for is called <code>hansard_statement</code>. Now all we have to do is leave that running and connect to that table from R! (Aside: the R tutorials can be super frustrating, because they assume you’ve got the database part worked out already—no! that’s the only part I need!)</p>
+</div>
+<div id="hansard" class="section level3">
+<h3>Hansard</h3>
+<p>A <a href="https://en.wikipedia.org/wiki/Hansard">hansard</a> is non-verbatim transcript of parliamentary proceedings. Aside: Canada is bilingual, so MPs can speak in either official language, and the Hansard will record which language is spoken, and later translate from one to the other for the official record. Which led to this gem:</p>
+<blockquote>
+<p>…during a Liberal filibuster in the Canadian Senate, Senator Philippe Gigantès was accused of reading one of his books only so that he could get the translation for free through the Hansard. (<a href="https://en.wikipedia.org/wiki/Hansard#cite_ref-16">Wikipedia</a>).</p>
+</blockquote>
+<p>So, we have a record of who speaks at what time during every session of parliament. Let’s take a look at the <code>hansard_statement</code> in the open parliament database.</p>
+</div>
+<div id="import-data-into-r-and-explore" class="section level3">
+<h3>Import data into R and explore</h3>
+<p>Now that we’re back home in R, let’s do our regular warm-up exercises:</p>
+<pre class="r"><code>library(RPostgreSQL)  # to access database
+library(tidyverse)    # to tidy things
+library(viridis)      # bc I like the colours
+library(lubridate)    # to deal with times. also need `hms` library too.</code></pre>
+<p>Now, let’s get the data:</p>
+<pre class="r"><code>con &lt;- dbConnect(dbDriver(&quot;PostgreSQL&quot;),
+                 dbname = &quot;openparl&quot;,
+                 host = &quot;localhost&quot;,
+                 user = &quot;jessetweedle&quot;, password = &quot;&quot;)</code></pre>
+<p>This is mainly ⌘+C/⌘+V from <a href="https://www.r-bloggers.com/getting-started-with-postgresql-in-r/">an r-bloggers post</a> by someone named <a href="https://www.linkedin.com/in/david-zimmermann-76a737a4/">David Zimmerman</a>. Thanks David.</p>
+<p>I had to write <code>&quot;openparl&quot;</code> as the <code>dbname</code> because that’s the name of the new local database I created to store the tables; <code>host</code> is local, and <code>user</code> is the name automatically given to me when I set up <code>psql</code>, and the default password is empty.</p>
+<p>Now let’s check out the tables; you can modify this code to get all the tables in this database, but I’m focusing on ones with <code>&quot;hansard&quot;</code> in them (because I’ve already written all the code!):</p>
+<pre class="r"><code>tbl_query &lt;- &quot;SELECT *
+              FROM pg_tables
+              WHERE schemaname=&#39;public&#39;;&quot;
+
+dbGetQuery(con, tbl_query) %&gt;%
+  as_tibble() %&gt;%
+  select(schemaname, tablename, tableowner) %&gt;%
+  filter(grepl(&quot;hansard&quot;, x = tablename))
+# A tibble: 5 x 3
+#   schemaname tablename                                tableowner
+#   &lt;chr&gt;      &lt;chr&gt;                                    &lt;chr&gt;
+# 1 public     hansards_document                        jessetweedle
+# 2 public     hansards_statement                       jessetweedle
+# 3 public     hansards_statement_bills                 jessetweedle
+# 4 public     hansards_statement_mentioned_politicians jessetweedle
+# 5 public     hansards_oldsequencemapping              jessetweedle</code></pre>
+<p>Now just check out the ones we want, and save them to a <code>tibble</code>. First, let’s just have a look at <code>hansard_statements</code> just to check it out:</p>
+<pre class="r"><code>test_query &lt;-  &quot;SELECT *
+                FROM hansards_statement
+                LIMIT 20;&quot;
+
+df &lt;- dbGetQuery(con, test_query) %&gt;% as_tibble()
+df %&gt;% print(n = 5)
+# A tibble: 20 x 27
+#        id document_id time                h1_en  h2_en member_id who_en content_en   sequence
+#  *  &lt;int&gt;       &lt;int&gt; &lt;dttm&gt;              &lt;chr&gt;  &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;           &lt;int&gt;
+#  1 645328         388 2008-02-14 13:15:00 Routi… Ques…        NA &quot;&quot;     &quot;&lt;p class=\…       86
+#  2 232373        1878 2001-05-03 13:50:00 Gover… Fede…      2611 Ms. M… &lt;p&gt;Mr. Spea…       89
+#  3 170961         944 1999-05-10 16:05:00 Gover… Inco…      3066 Mr. G… &quot;&lt;p&gt;Mr. Spe…      210
+#  4  27684        1138 1994-11-18 10:00:00 &quot;&quot;     Priv…        NA The S… &quot;&lt;p&gt;My coll…        0
+#  5 645329         388 2008-02-14 13:15:00 Routi… Ques…      1534 Mr. T… &quot;&lt;p data-Ho…       87
+# # ... with 15 more rows, and 18 more variables: wordcount &lt;int&gt;, politician_id &lt;int&gt;,
+# #   procedural &lt;lgl&gt;, h3_en &lt;chr&gt;, who_hocid &lt;int&gt;, content_fr &lt;chr&gt;, statement_type &lt;chr&gt;,
+# #   written_question &lt;chr&gt;, source_id &lt;chr&gt;, who_context_en &lt;chr&gt;, slug &lt;chr&gt;,
+# #   urlcache &lt;chr&gt;, h1_fr &lt;chr&gt;, h2_fr &lt;chr&gt;, h3_fr &lt;chr&gt;, who_fr &lt;chr&gt;,
+# #   who_context_fr &lt;chr&gt;, wordcount_en &lt;int&gt;</code></pre>
+<p>Data so cool. Thank you again <a href="https://twitter.com/michaelmulley?lang=en">Michael</a>.</p>
+<pre class="r"><code>data_query &lt;- &quot;SELECT time, h1_en, h2_en, h3_en, who_en, politician_id, 
+                       wordcount, who_hocid, who_context_en
+               FROM hansards_statement 
+               ORDER BY time, sequence;&quot;
+han_df &lt;- dbGetQuery(con, data_query) %&gt;% as_tibble()
+han_df %&gt;% print(n = 5)
+# A tibble: 2,297,140 x 9
+#    time                h1_en h2_en      h3_en who_en        politician_id wordcount who_hocid
+#  * &lt;dttm&gt;              &lt;chr&gt; &lt;chr&gt;      &lt;chr&gt; &lt;chr&gt;                 &lt;int&gt;     &lt;int&gt;     &lt;int&gt;
+#  1 1994-01-17 11:00:00 &quot;&quot;    &quot;&quot;         &quot;&quot;    &quot;&quot;                       NA       301        NA
+#  2 1994-01-17 11:25:00 &quot;&quot;    &quot;&quot;         &quot;&quot;    The Clerk of…            NA        27        NA
+#  3 1994-01-17 11:25:00 &quot;&quot;    Election … &quot;&quot;    The Presidin…            NA       134        NA
+#  4 1994-01-17 11:25:00 &quot;&quot;    Election … &quot;&quot;    Mr. Nunziata           4892        40        NA
+#  5 1994-01-17 11:25:00 &quot;&quot;    Election … &quot;&quot;    The Presidin…            NA       289        NA
+# # ... with 2,297,135 more rows, and 1 more variable: who_context_en &lt;chr&gt;</code></pre>
+<p>Cool, the two things I want (for now) are <code>time</code> and <code>who_en</code>.</p>
+</div>
+</div>
+<div id="analysis" class="section level2">
+<h2>Analysis</h2>
+<p>First, an overview of the data we’re going to work with.</p>
+<pre class="r"><code>han_df &lt;- read_csv(&quot;han_df.zip&quot;)
+han_df &lt;- han_df %&gt;% mutate(time = with_tz(time, &quot;America/Toronto&quot;))
+han_df %&gt;% sample_n(5) # an easy way to look at a random sample of observations instead of just the first 10
+## # A tibble: 5 x 2
+##   time                who_en                                       
+##   &lt;dttm&gt;              &lt;chr&gt;                                        
+## 1 2003-02-03 14:20:00 Hon. Anne McLellan (Minister of Health, Lib.)
+## 2 2009-05-28 19:40:00 Hon. Gail Shea                               
+## 3 2011-03-22 11:20:00 Hon. Wayne Easter (Malpeque, Lib.)           
+## 4 2006-05-10 16:00:00 The Chair                                    
+## 5 2011-03-03 10:35:00 The Chair</code></pre>
+<p>Ok, now we’re getting somewhere. I want to check two things: (1) what does the time distribution look like? and (2) can we get the gender of the MPs from names? Let’s leave (2): if you look at the names, you might be able to get gender with the titles (Mr. vs. Mrs.), but you’re also going to be dropping some ministers; this may bias our results because women are being overrepresented in the data relative to reality (until now, women are much less likely to be ministers). We’ll leave that problem to another day, and say these results provide an upper bound on the relative power of women.</p>
+<div id="cycles-of-activity" class="section level3">
+<h3>Cycles of activity</h3>
+<p>So, the time distribution:</p>
+<p><img src="/post/2018-02-14-parliament-gender_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
+<p>There are cycles of activity; it picks up when session begins, drops off around 11, picks up from 11 to 12, gets higher around question period, and peaks at around 4. There are obvious patterns to the activity in the Hansard that definitely correspond to the daily schedule of parliament. Keep that in mind for later. At this stage, we just want to know that the data make sense. There are some outliers left off the graph (e.g., filibustering that lasts through the night).</p>
+</div>
+<div id="gender-imbalance-in-parliament-overall-stats" class="section level3">
+<h3>Gender (im)balance in Parliament: overall stats</h3>
+<p>From our exploratory analysis before, we know that there is often a gendered title associated with the name. As a first stab at the problem, just call names with “Mr.” Male, and names with “Mrs.” Female. (This has its own problems—in a few cases, the hansard specifies that a woman is speaking on behalf of a man, and vice versa.)</p>
+<pre class="r"><code>name_time_gender &lt;- name_time %&gt;% 
+  filter(who_en != &quot;&quot;) %&gt;%
+  filter(grepl(&quot;(Mr\\.|Mrs\\.|Miss)&quot;, x = who_en)) %&gt;%
+  mutate(gender = case_when(
+    grepl(&quot;(Mr\\.)&quot;, x = who_en) ~ &quot;M&quot;,
+    grepl(&quot;(Mrs\\.|Ms\\.|Miss)&quot;, x = who_en) ~ &quot;F&quot;,
+    TRUE ~ &quot;X&quot;))
+name_time_gender %&gt;% sample_n(5)
+## # A tibble: 5 x 4
+##   time                who_en                           hms    gender
+##   &lt;dttm&gt;              &lt;chr&gt;                            &lt;time&gt; &lt;chr&gt; 
+## 1 2002-06-17 11:30:00 The Acting Speaker (Mr. Bélair)  11:30  M     
+## 2 2012-10-04 12:10:00 Mr. Ed Holder                    12:10  M     
+## 3 2007-04-19 12:55:00 Mr. Harold Albrecht              12:55  M     
+## 4 2010-05-31 13:00:00 Mr. Malcolm Allen (Welland, NDP) 13:00  M     
+## 5 2013-06-04 09:50:00 Mr. Chungsen Leung               09:50  M</code></pre>
+Ok, that’s not bad; now what are the overall statistics?
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Gender
+</th>
+<th style="text-align:right;">
+N speakers
+</th>
+<th style="text-align:right;">
+Freq.
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+F
+</td>
+<td style="text-align:right;">
+92482
+</td>
+<td style="text-align:right;">
+7.8%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+M
+</td>
+<td style="text-align:right;">
+1093827
+</td>
+<td style="text-align:right;">
+92.2%
+</td>
+</tr>
+</tbody>
+</table>
+<p>Ugh. &lt;10%, even though there are &gt;20% female MPs. Does it change over time? We know 2015 was a record breaking election for female candidates; on the other hand, the previous record was 1993. So in between: 🤷🏿.</p>
+<p><img src="/post/2018-02-14-parliament-gender_files/figure-html/unnamed-chunk-10-1.png" width="768" /></p>
+<p>Whoops. There’s an obvious break in the series for Count—so something happened to the data collection or the structure of the hansard (it’s less likely that parliament itself changed in that year). On the other hand, the frequency doesn’t change, so it’s unlikely to change our conclusions for gender imbalance. Just one thing to keep in mind for the future.</p>
+<p>But really—7.8% is pretty bad. That’s much lower than the number of female MPs of around 20%. They’re underrepresented, and the ones that are there aren’t talking. Hmm. Is there more to the story?</p>
+</div>
+<div id="dayplot" class="section level3">
+<h3>Gender (im)balance in Parliament: time and day patterns</h3>
+<p><img src="/post/2018-02-14-parliament-gender_files/figure-html/unnamed-chunk-11-1.png" width="768" /></p>
+<p>Wow. That’s a pattern I didn’t expect—there’s a spike at 2:00PM from Monday-Thursday, but not Friday. Weird. That cyclical activity pattern we noted before probably explains some of this. There’s some information on this in the dataset (under the original heading <code>h1_en</code>), but it’s not very consistent (different capitalization, spelling, naming conventions).</p>
+<p>So let’s do some googling to find <a href="https://www.ourcommons.ca/About/Schedules/DailyOrderOfBusiness-e.html">Parliament’s daily order of business</a>. Mon-Thurs at 2:00PM (and Friday at 11:00AM) is time for “Statements from Members”! That’s where all the spikes are! Which means women are speaking at the time each member can get exactly one minute to speak on any topic. It’s also relatively high at 2:30 (same days), which is Question Period! They’re talking and asking questions at the times they are allowed to do so. But they’re not speaking during regular government business.</p>
+<p>Let’s save that data as a csv file, read it in and join it to the data.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Session Type
+</th>
+<th style="text-align:right;">
+F
+</th>
+<th style="text-align:right;">
+M
+</th>
+<th style="text-align:right;">
+% Female
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Statements by Members
+</td>
+<td style="text-align:right;">
+3910
+</td>
+<td style="text-align:right;">
+26832
+</td>
+<td style="text-align:right;">
+12.72%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Oral Questions
+</td>
+<td style="text-align:right;">
+9629
+</td>
+<td style="text-align:right;">
+79904
+</td>
+<td style="text-align:right;">
+10.75%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adjournment Proceedings
+</td>
+<td style="text-align:right;">
+1966
+</td>
+<td style="text-align:right;">
+18423
+</td>
+<td style="text-align:right;">
+9.64%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Private Members’ Business
+</td>
+<td style="text-align:right;">
+3217
+</td>
+<td style="text-align:right;">
+40253
+</td>
+<td style="text-align:right;">
+7.40%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Review of Delegated Legislation
+</td>
+<td style="text-align:right;">
+82
+</td>
+<td style="text-align:right;">
+1029
+</td>
+<td style="text-align:right;">
+7.38%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Government Orders
+</td>
+<td style="text-align:right;">
+61409
+</td>
+<td style="text-align:right;">
+779895
+</td>
+<td style="text-align:right;">
+7.30%
+</td>
+</tr>
+</tbody>
+</table>
+<p>Dang. Alright. The ratio of female speakers in parliament doubles at times off of regular government business—suggesting they are not involved in the actual running of the government (from this data, we can’t tell whether that’s by choice of the individuals or by design of those in power; you be the judge). Then they jump up when they can (‘statements by members’, ‘oral questions’ and ‘adjournment proceedings’ are all made up on short one minute statements and question period).</p>
+<p>That’s it. Parliament’s gender power imbalance boils down to three facts:</p>
+<ol style="list-style-type: decimal">
+<li>there aren’t many women (20-25% of members),</li>
+<li>the women that are there are underrepresented on the floor (7.8% of speakers),</li>
+<li>they speak almost twice as often during statements by members and question period than during routine government business.</li>
+</ol>
+<p>And that’s before we get to the words! Who knows what these people are actually saying? <a href="https://github.com/juliasilge/tidytext">tidytext</a> does! And after writing this, I found out about <a href="https://www.lipad.ca/data/">Linked Parliamentary Data Project (LiPaD)</a> at the University of Toronto, an even larger historical digital source of Canadian Hansards. Who knows what we can come up with!</p>
+</div>
+</div>

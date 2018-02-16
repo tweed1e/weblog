@@ -20,20 +20,19 @@ categories: ["r"]
 <pre class="r"><code>titles &lt;- werfriends::friends_episodes %&gt;% as_tibble()
 titles
 ## # A tibble: 236 x 7
-##    season episode                                           title rating
-##     &lt;dbl&gt;   &lt;dbl&gt;                                           &lt;chr&gt;  &lt;dbl&gt;
-##  1      1       1           The One Where Monica Gets a Roommate     8.5
-##  2      1       2           The One with the Sonogram at the End     8.2
-##  3      1       3                         The One with the Thumb     8.3
-##  4      1       4             The One with George Stephanopoulos     8.3
-##  5      1       5 The One with the East German Laundry Detergent     8.6
-##  6      1       6                          The One with the Butt     8.3
-##  7      1       7                      The One with the Blackout     9.0
-##  8      1       8                  The One Where Nana Dies Twice     8.2
-##  9      1       9               The One Where Underdog Gets Away     8.3
-## 10      1      10                        The One with the Monkey     8.2
-## # ... with 226 more rows, and 3 more variables: n_ratings &lt;dbl&gt;,
-## #   director &lt;list&gt;, writers &lt;list&gt;</code></pre>
+##    season episode title                 rating n_ratings director  writers
+##     &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;list&gt;    &lt;list&gt; 
+##  1     1.      1. The One Where Monica…   8.50     4317. &lt;chr [1]&gt; &lt;chr […
+##  2     1.      2. The One with the Son…   8.20     3107. &lt;chr [1]&gt; &lt;chr […
+##  3     1.      3. The One with the Thu…   8.30     2900. &lt;chr [1]&gt; &lt;chr […
+##  4     1.      4. The One with George …   8.30     2810. &lt;chr [1]&gt; &lt;chr […
+##  5     1.      5. The One with the Eas…   8.60     2768. &lt;chr [1]&gt; &lt;chr […
+##  6     1.      6. The One with the But…   8.30     2695. &lt;chr [1]&gt; &lt;chr […
+##  7     1.      7. The One with the Bla…   9.00     3516. &lt;chr [1]&gt; &lt;chr […
+##  8     1.      8. The One Where Nana D…   8.20     2594. &lt;chr [1]&gt; &lt;chr […
+##  9     1.      9. The One Where Underd…   8.30     2516. &lt;chr [1]&gt; &lt;chr […
+## 10     1.     10. The One with the Mon…   8.20     2544. &lt;chr [1]&gt; &lt;chr […
+## # ... with 226 more rows</code></pre>
 <p>The problem: all we really have is titles, writers and directors. How do we use natural language information to predict episode ratings? My first idea is to use dummy variables (aka factors with levels <code>c(&quot;0&quot;,&quot;1&quot;)</code>) to encode the title words and director and writer names. In other words, the S4E19 episode titled “The One with All the Haste” would have a <code>1</code> in variable <code>haste</code>, but a <code>0</code> for every character dummy variable <code>ross</code>, <code>rachel</code>, etc. (S4E19 is the ep where Monica and Rachel steal their apartment back from Chandler and Joey. So good.)</p>
 </div>
 <div id="method" class="section level2">
@@ -55,42 +54,41 @@ titles
 <pre class="r"><code># the dataset
 episodes
 ## # A tibble: 236 x 352
-##    rating chandler   joey monica phoebe rachel   ross season episode
-##     &lt;dbl&gt;   &lt;fctr&gt; &lt;fctr&gt; &lt;fctr&gt; &lt;fctr&gt; &lt;fctr&gt; &lt;fctr&gt; &lt;fctr&gt;  &lt;fctr&gt;
-##  1    8.5        0      0      1      0      0      0      1       1
-##  2    8.2        0      0      0      0      0      0      1       2
-##  3    8.3        0      0      0      0      0      0      1       3
-##  4    8.3        0      0      0      0      0      0      1       4
-##  5    8.6        0      0      0      0      0      0      1       5
-##  6    8.3        0      0      0      0      0      0      1       6
-##  7    9.0        0      0      0      0      0      0      1       7
-##  8    8.2        0      0      0      0      0      0      1       8
-##  9    8.3        0      0      0      0      0      0      1       9
-## 10    8.2        0      0      0      0      0      0      1      10
-## # ... with 226 more rows, and 343 more variables: n_ratings &lt;fctr&gt;,
-## #   after &lt;fctr&gt;, apothecary &lt;fctr&gt;, armadillo &lt;fctr&gt;, assistant &lt;fctr&gt;,
-## #   award &lt;fctr&gt;, baby &lt;fctr&gt;, babysits &lt;fctr&gt;, bag &lt;fctr&gt;, ball &lt;fctr&gt;,
-## #   ballroom &lt;fctr&gt;, barbados &lt;fctr&gt;, barry &lt;fctr&gt;, bath &lt;fctr&gt;,
-## #   beach &lt;fctr&gt;, bed &lt;fctr&gt;, bing &lt;fctr&gt;, birth &lt;fctr&gt;, birthday &lt;fctr&gt;,
-## #   birthing &lt;fctr&gt;, blackout &lt;fctr&gt;, blind &lt;fctr&gt;, boob &lt;fctr&gt;,
-## #   boobies &lt;fctr&gt;, book &lt;fctr&gt;, boots &lt;fctr&gt;, box &lt;fctr&gt;, brain &lt;fctr&gt;,
-## #   breast &lt;fctr&gt;, bullies &lt;fctr&gt;, bus &lt;fctr&gt;, butt &lt;fctr&gt;,
-## #   c.h.e.e.s.e &lt;fctr&gt;, cake &lt;fctr&gt;, candy &lt;fctr&gt;, car &lt;fctr&gt;, cat &lt;fctr&gt;,
-## #   caught &lt;fctr&gt;, champion &lt;fctr&gt;, cheap &lt;fctr&gt;, cheesecakes &lt;fctr&gt;,
-## #   chick &lt;fctr&gt;, chicken &lt;fctr&gt;, christmas &lt;fctr&gt;, class &lt;fctr&gt;,
-## #   closet &lt;fctr&gt;, consuela &lt;fctr&gt;, cookies &lt;fctr&gt;, cooking &lt;fctr&gt;,
-## #   cop &lt;fctr&gt;, cousin &lt;fctr&gt;, cries &lt;fctr&gt;, crosses &lt;fctr&gt;, crush &lt;fctr&gt;,
-## #   cry &lt;fctr&gt;, cuffs &lt;fctr&gt;, dad &lt;fctr&gt;, dancing &lt;fctr&gt;, date &lt;fctr&gt;,
-## #   dates &lt;fctr&gt;, day &lt;fctr&gt;, denial &lt;fctr&gt;, detergent &lt;fctr&gt;,
-## #   device &lt;fctr&gt;, dies &lt;fctr&gt;, dinner &lt;fctr&gt;, dirty &lt;fctr&gt;, dogs &lt;fctr&gt;,
-## #   dollhouse &lt;fctr&gt;, donor &lt;fctr&gt;, dozen &lt;fctr&gt;, dr &lt;fctr&gt;, dream &lt;fctr&gt;,
-## #   dress &lt;fctr&gt;, dresses &lt;fctr&gt;, duck &lt;fctr&gt;, east &lt;fctr&gt;, eddie &lt;fctr&gt;,
-## #   eggplant &lt;fctr&gt;, elizabeth &lt;fctr&gt;, embryos &lt;fctr&gt;, emma &lt;fctr&gt;,
-## #   engagement &lt;fctr&gt;, estelle &lt;fctr&gt;, everybody &lt;fctr&gt;, evil &lt;fctr&gt;,
-## #   factor &lt;fctr&gt;, fake &lt;fctr&gt;, fantasy &lt;fctr&gt;, fertility &lt;fctr&gt;,
-## #   fighting &lt;fctr&gt;, fine &lt;fctr&gt;, flashback &lt;fctr&gt;, flirt &lt;fctr&gt;,
-## #   football &lt;fctr&gt;, forward &lt;fctr&gt;, frank &lt;fctr&gt;, free &lt;fctr&gt;,
-## #   french &lt;fctr&gt;, fridge &lt;fctr&gt;, ...
+##    rating chandler joey  monica phoebe rachel ross  season episode
+##     &lt;dbl&gt; &lt;fct&gt;    &lt;fct&gt; &lt;fct&gt;  &lt;fct&gt;  &lt;fct&gt;  &lt;fct&gt; &lt;fct&gt;  &lt;fct&gt;  
+##  1   8.50 0        0     1      0      0      0     1      1      
+##  2   8.20 0        0     0      0      0      0     1      2      
+##  3   8.30 0        0     0      0      0      0     1      3      
+##  4   8.30 0        0     0      0      0      0     1      4      
+##  5   8.60 0        0     0      0      0      0     1      5      
+##  6   8.30 0        0     0      0      0      0     1      6      
+##  7   9.00 0        0     0      0      0      0     1      7      
+##  8   8.20 0        0     0      0      0      0     1      8      
+##  9   8.30 0        0     0      0      0      0     1      9      
+## 10   8.20 0        0     0      0      0      0     1      10     
+## # ... with 226 more rows, and 343 more variables: n_ratings &lt;fct&gt;,
+## #   after &lt;fct&gt;, apothecary &lt;fct&gt;, armadillo &lt;fct&gt;, assistant &lt;fct&gt;,
+## #   award &lt;fct&gt;, baby &lt;fct&gt;, babysits &lt;fct&gt;, bag &lt;fct&gt;, ball &lt;fct&gt;,
+## #   ballroom &lt;fct&gt;, barbados &lt;fct&gt;, barry &lt;fct&gt;, bath &lt;fct&gt;, beach &lt;fct&gt;,
+## #   bed &lt;fct&gt;, bing &lt;fct&gt;, birth &lt;fct&gt;, birthday &lt;fct&gt;, birthing &lt;fct&gt;,
+## #   blackout &lt;fct&gt;, blind &lt;fct&gt;, boob &lt;fct&gt;, boobies &lt;fct&gt;, book &lt;fct&gt;,
+## #   boots &lt;fct&gt;, box &lt;fct&gt;, brain &lt;fct&gt;, breast &lt;fct&gt;, bullies &lt;fct&gt;,
+## #   bus &lt;fct&gt;, butt &lt;fct&gt;, c.h.e.e.s.e &lt;fct&gt;, cake &lt;fct&gt;, candy &lt;fct&gt;,
+## #   car &lt;fct&gt;, cat &lt;fct&gt;, caught &lt;fct&gt;, champion &lt;fct&gt;, cheap &lt;fct&gt;,
+## #   cheesecakes &lt;fct&gt;, chick &lt;fct&gt;, chicken &lt;fct&gt;, christmas &lt;fct&gt;,
+## #   class &lt;fct&gt;, closet &lt;fct&gt;, consuela &lt;fct&gt;, cookies &lt;fct&gt;,
+## #   cooking &lt;fct&gt;, cop &lt;fct&gt;, cousin &lt;fct&gt;, cries &lt;fct&gt;, crosses &lt;fct&gt;,
+## #   crush &lt;fct&gt;, cry &lt;fct&gt;, cuffs &lt;fct&gt;, dad &lt;fct&gt;, dancing &lt;fct&gt;,
+## #   date &lt;fct&gt;, dates &lt;fct&gt;, day &lt;fct&gt;, denial &lt;fct&gt;, detergent &lt;fct&gt;,
+## #   device &lt;fct&gt;, dies &lt;fct&gt;, dinner &lt;fct&gt;, dirty &lt;fct&gt;, dogs &lt;fct&gt;,
+## #   dollhouse &lt;fct&gt;, donor &lt;fct&gt;, dozen &lt;fct&gt;, dr &lt;fct&gt;, dream &lt;fct&gt;,
+## #   dress &lt;fct&gt;, dresses &lt;fct&gt;, duck &lt;fct&gt;, east &lt;fct&gt;, eddie &lt;fct&gt;,
+## #   eggplant &lt;fct&gt;, elizabeth &lt;fct&gt;, embryos &lt;fct&gt;, emma &lt;fct&gt;,
+## #   engagement &lt;fct&gt;, estelle &lt;fct&gt;, everybody &lt;fct&gt;, evil &lt;fct&gt;,
+## #   factor &lt;fct&gt;, fake &lt;fct&gt;, fantasy &lt;fct&gt;, fertility &lt;fct&gt;,
+## #   fighting &lt;fct&gt;, fine &lt;fct&gt;, flashback &lt;fct&gt;, flirt &lt;fct&gt;,
+## #   football &lt;fct&gt;, forward &lt;fct&gt;, frank &lt;fct&gt;, free &lt;fct&gt;, french &lt;fct&gt;,
+## #   fridge &lt;fct&gt;, …
 # also created `ep_mm`, a sparse model matrix based on `episodes`</code></pre>
 <p>This is a dataset with a million factors for different words that show up in titles, and factors for all the directors and writers. There are only 236 episodes/observations but 351 potential explanatory variables, leaving us in a high-dimensional situation <code>p&gt;&gt;n</code> (although a pretty low dimensional high dimensional situation).</p>
 </div>
@@ -117,18 +115,18 @@ c &lt;- cv.glmnet(ep_mm, episodes$rating, penalty.factor = penalty.factor) %&gt;
 lasso &lt;- tibble(term = names(c), estimate = c)
 lasso
 ## # A tibble: 236 x 2
-##         term      estimate
-##        &lt;chr&gt;         &lt;dbl&gt;
-##  1 chandler1  0.1176019972
-##  2     joey1 -0.0471344876
-##  3   monica1 -0.0344661784
-##  4   phoebe1 -0.1441493845
-##  5   rachel1 -0.0431721298
-##  6     ross1  0.1990786702
-##  7   season2  0.0000000000
-##  8   season3 -0.0001827438
-##  9   season4  0.0006538244
-## 10   season5  0.0597535505
+##    term       estimate
+##    &lt;chr&gt;         &lt;dbl&gt;
+##  1 chandler1  0.118   
+##  2 joey1     -0.0471  
+##  3 monica1   -0.0345  
+##  4 phoebe1   -0.144   
+##  5 rachel1   -0.0432  
+##  6 ross1      0.199   
+##  7 season2    0.      
+##  8 season3   -0.000183
+##  9 season4    0.000654
+## 10 season5    0.0598  
 ## # ... with 226 more rows</code></pre>
 </div>
 <div id="do-post-selection-estimation" class="section level3">

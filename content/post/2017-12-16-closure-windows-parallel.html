@@ -33,18 +33,18 @@ mutate_names &lt;- function(tbl) {
 
 mutate_names(babynames[1:10, ])
 ## # A tibble: 10 x 5
-##     year   sex  name     n       prop
-##    &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;int&gt;      &lt;dbl&gt;
-##  1  1880     F   mry  7065 0.07238433
-##  2  1880     F    nn  2604 0.02667923
-##  3  1880     F    mm  2003 0.02052170
-##  4  1880     F lzbth  1939 0.01986599
-##  5  1880     F   mnn  1746 0.01788861
-##  6  1880     F mrgrt  1578 0.01616737
-##  7  1880     F     d  1472 0.01508135
-##  8  1880     F    lc  1414 0.01448711
-##  9  1880     F  brth  1320 0.01352404
-## 10  1880     F   srh  1288 0.01319618</code></pre>
+##     year sex   name      n   prop
+##    &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;int&gt;  &lt;dbl&gt;
+##  1 1880. F     mry    7065 0.0724
+##  2 1880. F     nn     2604 0.0267
+##  3 1880. F     mm     2003 0.0205
+##  4 1880. F     lzbth  1939 0.0199
+##  5 1880. F     mnn    1746 0.0179
+##  6 1880. F     mrgrt  1578 0.0162
+##  7 1880. F     d      1472 0.0151
+##  8 1880. F     lc     1414 0.0145
+##  9 1880. F     brth   1320 0.0135
+## 10 1880. F     srh    1288 0.0132</code></pre>
 <p>But <code>babynames</code> has 1,858,689 rows! It may take a long time to process everything. So your first idea is to start parallel processes, split the data frame, <code>parLapply</code> the function to each table in the split list, then <code>bind_rows</code> them back together.</p>
 <pre class="r"><code>library(parallel)
 cl &lt;- makeCluster(detectCores())
