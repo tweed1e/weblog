@@ -1,5 +1,5 @@
 ---
-title: "Parliament's gender/power problem, pt. 1"
+title: "Parliament's gender problem"
 author: "Jesse Tweedle"
 date: '2018-02-14'
 slug: parliament-gender
@@ -7,7 +7,6 @@ categories: ["r"]
 tags: ["r", "canada", "parliament", "gender", "bias", "text analysis", "hansard"]
 description: 'A look at digital copies of Canadian parliamentary debates 1994--2017, showing gender imbalance in both number of speakers and time pattern of speakers.'
 image: "https://jesse.tw/images/circle-arrows.png"
-draft: TRUE
 ---
 
 ```{r setup, include=FALSE}
@@ -15,16 +14,17 @@ knitr::opts_chunk$set(collapse = TRUE,
                       warning = FALSE, 
                       message = FALSE,
                       fig.height = 4, fig.width = 8)
+colours <- function(nlevels) { viridis::magma(nlevels+1)[-nlevels-1] }
 ```
 
 (Preface: I'm `r emo::ji('canada')` but idk anything about parliament and dk what a hansard was before I started this. So if you see something wrong, get the [code from github](https://github.com/tweed1e/weblog/blob/master/content/post/2018-02-14-parliament-gender.Rmd) and diy!)
 
 ## Summary
 
-1. Women make up 20-25% of Parliament
-2. Only 8% of speakers in Parliament are female
-3. That spikes to 13% during "Statements by Members" (one minute statements) and "Oral Questions" (question period), and drops during routine government business
-4. Nice to have Trudeau's gender-balanced cabinet, but are female MPs left out of Parliament's day-to-day business?
+1. Women make up [20-25% of Parliament](http://www.cbc.ca/news2/interactives/women-politics/)
+2. Number of words spoken by females increases from 1994--2017 from 15% to 28%
+3. Increase mainly comes from doubling involvement in routine government business
+4. Nice to have Trudeau's [gender-balanced cabinet](http://www.cbc.ca/news2/interactives/women-politics/), but female MPs are also becoming more involved in day-to-day operations
 
 [(Click to skip to the important pictures.)](#dayplot)
 
@@ -59,10 +59,10 @@ The first one installs postgresql; the next creates the database `openparl` that
 ```
 $ psql postgres
 postgres-# \list
-   Name    |    Owner     | Encoding |   Collate   |    Ctype    |       Access privileges       
+   Name    |    Owner     | Encoding |   Collate   |    Ctype    |       Access privileges
 -----------+--------------+----------+-------------+-------------+-------------------------------
- openparl  | jessetweedle | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
- postgres  | jessetweedle | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ openparl  | jessetweedle | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ postgres  | jessetweedle | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
  template0 | jessetweedle | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/jessetweedle              +
            |              |          |             |             | jessetweedle=CTc/jessetweedle
  template1 | jessetweedle | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/jessetweedle              +
@@ -76,7 +76,7 @@ It's there! It worked ffs! Next, connect to the database and list contents (I'll
 postgres-# \connect openparl
 openparl-# \dt
                             List of relations
- Schema |                   Name                   | Type  |    Owner     
+ Schema |                   Name                   | Type  |    Owner
 --------+------------------------------------------+-------+--------------
  public | accounts_logintoken                      | table | jessetweedle
  public | accounts_user                            | table | jessetweedle
@@ -86,7 +86,7 @@ openparl-# \dt
 (64 rows)
 ```
 
-It turns out the one we're looking for is called `hansard_statement`. Now all we have to do is leave that running and connect to that table from R! (Aside: the R tutorials can be super frustrating, because they assume you've got the database part worked out already---no! that's the only part I need!)
+It turns out the two databases we're looking for are `hansard_statement` (the parliament transcripts) and `core_politician` (for politician gender data). Now all we have to do is leave that running and connect to that table from R! (Aside: the R tutorials can be super frustrating, because they assume you've got the database part worked out already---no! that's the only part I need!)
 
 ### Hansard
 
@@ -121,7 +121,7 @@ This is mainly ⌘+C/⌘+V from [an r-bloggers post ](https://www.r-bloggers.com
 
 I had to write `"openparl"` as the `dbname` because that's the name of the new local database I created to store the tables; `host` is local, and `user` is the name automatically given to me when I set up `psql`, and the default password is empty.
 
-Now let's check out the tables; you can modify this code to get all the tables in this database, but I'm focusing on ones with `"hansard"` in them (because I've already written all the code!):
+Now let's check out the tables; you can modify this code to get all the tables in this database, but I'm focusing on ones with `"hansard"` in them (because I've already written all the code and I know what I need!):
 
 ``` {r, eval = FALSE}
 tbl_query <- "SELECT *
@@ -169,21 +169,24 @@ df %>% print(n = 5)
 Data so cool. Thank you again [Michael](https://twitter.com/michaelmulley?lang=en).
 
 ``` {r, eval = FALSE}
-data_query <- "SELECT time, h1_en, h2_en, h3_en, who_en, politician_id, 
-                       wordcount, who_hocid, who_context_en
-               FROM hansards_statement 
-               ORDER BY time, sequence;"
+data_query <- "SELECT time, h1_en, h2_en, h3_en, who_en, politician_id,
+                  wordcount, who_hocid, who_context_en, name, gender
+          FROM hansards_statement
+          LEFT JOIN core_politician
+          ON hansards_statement.politician_id = core_politician.id
+          ORDER BY time, sequence;"
+
 han_df <- dbGetQuery(con, data_query) %>% as_tibble()
 han_df %>% print(n = 5)
-# A tibble: 2,297,140 x 9
-#    time                h1_en h2_en      h3_en who_en        politician_id wordcount who_hocid
-#  * <dttm>              <chr> <chr>      <chr> <chr>                 <int>     <int>     <int>
-#  1 1994-01-17 11:00:00 ""    ""         ""    ""                       NA       301        NA
-#  2 1994-01-17 11:25:00 ""    ""         ""    The Clerk of…            NA        27        NA
-#  3 1994-01-17 11:25:00 ""    Election … ""    The Presidin…            NA       134        NA
-#  4 1994-01-17 11:25:00 ""    Election … ""    Mr. Nunziata           4892        40        NA
-#  5 1994-01-17 11:25:00 ""    Election … ""    The Presidin…            NA       289        NA
-# # ... with 2,297,135 more rows, and 1 more variable: who_context_en <chr>
+# A tibble: 2,297,140 x 11
+#   time                h1_en h2_en     h3_en who_en        politician_id wordcount who_hocid
+#   <dttm>              <chr> <chr>     <chr> <chr>                 <int>     <int>     <int>
+# 1 1994-01-17 11:00:00 ""    ""        ""    ""                       NA       301        NA
+# 2 1994-01-17 11:25:00 ""    ""        ""    The Clerk of…            NA        27        NA
+# 3 1994-01-17 11:25:00 ""    Election… ""    The Presidin…            NA       134        NA
+# 4 1994-01-17 11:25:00 ""    Election… ""    Mr. Nunziata           4892        40        NA
+# 5 1994-01-17 11:25:00 ""    Election… ""    The Presidin…            NA       289        NA
+# ... with 2.297e+06 more rows, and 3 more variables: who_context_en <chr>, name <chr>, gender <chr>
 ```
 
 Cool, the two things I want (for now) are `time` and `who_en`.
@@ -197,127 +200,91 @@ han_df <- han_df %>% mutate(time = with_tz(time, "America/Toronto"))
 han_df %>% sample_n(5) # an easy way to look at a random sample of observations instead of just the first 10
 ```
 
-Ok, now we're getting somewhere. I want to check two things: (1) what does the time distribution look like? and (2) can we get the gender of the MPs from names? Let's leave (2): if you look at the names, you might be able to get gender with the titles (Mr. vs. Mrs.), but you're also going to be dropping some ministers; this may bias our results because women are being overrepresented in the data relative to reality (until now, women are much less likely to be ministers). We'll leave that problem to another day, and say these results provide an upper bound on the relative power of women.
+Ok, now we're getting somewhere. I want to check two things: (1) what does the time distribution look like? and (2) can we get the gender of the MPs from names? We got genders from the politician database, but there are some sanity checks we'll need. Leave that for later.
 
 ### Cycles of activity
 
 So, the time distribution:
 
 ``` {r, echo = FALSE, fig.keep = 'all'}
+
 name_time <- han_df %>% mutate(hms = hms::hms(second(time), minute(time), hour(time)))
-name_time %>% 
-  count(hms) %>% 
-  filter(n > 454) %>% 
-  ggplot(aes(x = hms, y = n)) + 
-  geom_point() + geom_smooth(span = 0.15) + 
+
+words <- name_time %>% 
+  select(time, hms, politician_id, who_en, wordcount, gender) %>% 
+  filter(who_en != "" & wordcount > 0)
+
+name_time %>%
+  group_by(hms) %>%
+  summarize(n = sum(wordcount)) %>%
+  # count(hms) %>%
+  filter(n > 40000) %>%
+  ggplot(aes(x = hms, y = n / 1e6)) +
+  geom_point() + geom_smooth(span = 0.15) +
   scale_x_time(breaks = hms::hms(rep(0, 24), rep(0, 24), 0:23),
                labels = function(x) strftime(x, "%H:%M", tz = "UTC", usetz = FALSE)) +
   theme_minimal() +
-  labs(x = "Time", 
-       y = "Number of events",
-       title = "Number of events over the day in Hansard, 1994--2017")
+  labs(x = "Time",
+       y = "Number of words (millions)",
+       title = "Number of words spoken over the day in Hansard, 1994--2017")
 ```
 
-There are cycles of activity; it picks up when session begins, drops off around 11, picks up from 11 to 12, gets higher around question period, and peaks at around 4. There are obvious patterns to the activity in the Hansard that definitely correspond to the daily schedule of parliament. Keep that in mind for later. At this stage, we just want to know that the data make sense. There are some outliers left off the graph (e.g., filibustering that lasts through the night).
+There are cycles of activity; it picks up when session begins, drops off from 1 to 4, then jumps up from 4-5. There are obvious patterns to the activity in the Hansard that definitely correspond to the daily schedule of parliament. Keep that in mind for later. At this stage, we just want to know that the data make sense. There are some outliers left off the graph (e.g., filibustering that lasts through the night).
 
 ### Gender (im)balance in Parliament: overall stats
 
-From our exploratory analysis before, we know that there is often a gendered title associated with the name. As a first stab at the problem, just call names with "Mr." Male, and names with "Mrs." Female. (This has its own problems---in a few cases, the hansard specifies that a woman is speaking on behalf of a man, and vice versa.)
+From our exploratory analysis before, we know that there is often a gendered title associated with the name, along with the gender given by the politician database. As a first stab to sanity check and validate the data, just call names with "Mr." (and French equivalents) Male, and names with "Mrs." (and other English and French equivalents) Female. (This has its own problems---in a few cases, the hansard specifies that a woman is speaking on behalf of a man, and vice versa.) Putting these two things together gives us a more accurate measure of gender.
 
 ``` {r}
-name_time_gender <- name_time %>% 
+words_gender <- words %>% 
   filter(who_en != "") %>%
-  filter(grepl("(Mr\\.|Mrs\\.|Miss|Ms\\.)", x = who_en)) %>%
-  mutate(gender = case_when(
-    grepl("(Mr\\.)", x = who_en) ~ "M",
-    grepl("(Mrs\\.|Ms\\.|Miss)", x = who_en) ~ "F",
-    TRUE ~ "X"))
-name_time_gender %>% sample_n(5)
+  mutate(gender_x = case_when(
+    grepl("(Mr\\.|M\\.)", x = who_en) ~ "M",
+    grepl("(Mrs\\.|Ms\\.|Miss|Mlle\\.|Mme\\.)", x = who_en) ~ "F",
+    TRUE ~ "")) %>% 
+  mutate(gender = ifelse(is.na(gender) | (gender_x != gender & gender_x != ""), gender_x, gender)) %>% 
+  filter(gender != "")
+words_gender %>% select(who_en, gender, gender_x) %>% sample_n(5)
 ```
 
 Ok, that's not bad; now what are the overall statistics?
 ``` {r, echo = FALSE}
-name_time_gender %>% 
-  count(gender) %>%
+words_gender %>%
+  group_by(gender) %>%
+  summarize(n = sum(wordcount)) %>%
   mutate(freq = scales::percent(n / sum(n))) %>%
-  rename_all(stringr::str_to_title) %>% 
-  rename(`N speakers` = N, `Freq.` = Freq) %>% 
-  knitr::kable("html", align = "lrr") %>% 
-  kableExtra::kable_styling(full_width = F)
+  rename_all(stringr::str_to_title) %>%
+  knitr::kable("html", align = "lrr") %>%
+  kableExtra::kable_styling(full_width = FALSE)
 ```
 
-Ugh. <10%, even though there are >20% female MPs. Does it change over time? We know 2015 was a record breaking election for female candidates; on the other hand, the previous record was 1993. So in between: `r emo::ji('shrug')`.
+Not great. Does it change over time? We know 2015 was a record breaking election for female candidates; on the other hand, the previous record was 1993. So in between: `r emo::ji('shrug')`.
 
 ``` {r, echo = FALSE, fig.keep = 'all'}
-# my own colour sale---viridis' magma but without the one super bright colour that I can never see
-colours <-  function(nlevels) { viridis::magma(nlevels+1)[-nlevels-1] }
-
-name_time_gender %>%
-  mutate(year = year(time)) %>% 
-  count(gender, year) %>%
-  group_by(year) %>% 
+words_gender %>%
+  mutate(year = year(time)) %>%
+  group_by(gender, year) %>%
+  summarize(n = sum(wordcount) / 1e6) %>%
+  group_by(year) %>%
   mutate(freq = n / sum(n)) %>%
-  rename(Frequency = freq, Count = n, Gender = gender) %>% 
-  gather(key = type, value = stat, -(Gender:year)) %>% 
-  ggplot(aes(x = year, y = stat, colour = Gender)) + 
-  geom_point() + geom_line() + 
+  rename(Frequency = freq, Count = n, Gender = gender) %>%
+  gather(key = type, value = stat, -(Gender:year)) %>%
+  filter(type == "Count" | (type == "Frequency" & Gender == "F")) %>%
+  ggplot(aes(x = year, y = stat, colour = Gender)) +
+  geom_point() + geom_line() +
+  expand_limits(y = 0) +
   scale_colour_manual(values = colours(2)) +
   scale_x_continuous(breaks = seq.int(1994, 2017, 3), minor_breaks = 1994:2017) +
   facet_wrap(~ type, scale = "free") +
-  labs(x = "Year", y = "", title = "Count and frequency of mentions by gender") +
+  labs(x = "Year", y = "", title = "Count (millions) and frequency of words by gender") +
   theme_minimal()
 ```
 
-Whoops. There's an obvious break in the series for Count---so something happened to the data collection or the structure of the hansard (it's less likely that parliament itself changed significantly at that time). On the other hand, the frequency doesn't change, so it's unlikely to change our conclusions for gender imbalance. Just one thing to keep in mind for the future.
-
-But really---`r name_time_gender %>% count(gender) %>% mutate(freq = n / sum(n)) %>% filter(gender == "F") %>% pull(freq) %>% scales::percent()` is pretty bad. That's much lower than the number of female MPs of around 20%. They're underrepresented, and the ones that are there aren't talking. Hmm. Is there more to the story?
+Whoops. There's an obvious break in the series for Count---so something happened to the data collection or the structure of the hansard (it's less likely that parliament itself changed significantly at that time). On the plus side, women get more words in Parliament over time!
 
 ### Gender (im)balance in Parliament: time and day patterns {#dayplot}
 
 ``` {r, echo = FALSE, fig.keep = 'all'}
-overall <- name_time_gender %>% 
-  count(gender) %>% 
-  spread(key = gender, value = n) %>% 
-  mutate(fem_perc = `F` / (`F` + M)) %>% pull(fem_perc)
-
-dayplot <- name_time_gender %>% 
-  mutate(
-    hour = hour(time), 
-    minute = as.integer((minute(time) %/% 15) * 15)
-  ) %>%
-  mutate(hms = hms::parse_hm(paste0(hour, ":", minute))) %>% 
-  mutate(
-    day = wday(time, label = TRUE)) %>% 
-  count(gender, hour, hms, day) %>% 
-  spread(key = gender, value = n) %>% 
-  filter(hour(hms) %>% between(8, 17)) %>%
-  filter(`F` > 5 & day != "Sat") %>% 
-  mutate(fem_perc = `F` / (M + `F`) * 100)
-
-
-dayplot %>% filter(hour %>% between(10, 17) & !(hour > 15 & day == "Fri")) %>% 
-  ggplot(aes(x = hms, y = fem_perc, colour = day)) +
-  geom_hline(yintercept = overall * 100, colour = "#999999", linetype = 'longdash', size = 1) +
-  geom_point() +
-  geom_line() + 
-  scale_x_time(breaks = hms::hms(rep(0, 24), rep(0, 24), 0:23),
-               labels = function(x) strftime(x, "%H:%M", tz = "UTC", usetz = FALSE)) +
-  scale_colour_manual(values = colours(n_distinct(dayplot$day))) +
-  labs(x = "Hour", 
-       y = "% female speakers", 
-       title = "% female speakers over time, by day of the week",
-       subtitle = "Dashed grey line shows average percentage of speakers overall",
-       colour = "Day") +
-  theme_minimal() 
-```
-
-Wow. That's a pattern I didn't expect---there's a spike at 2:00PM from Monday-Thursday, but not Friday. Weird. That cyclical activity pattern we noted before probably explains some of this. There's some information on this in the dataset (under the original heading `h1_en`), but it's not very consistent (different capitalization, spelling, naming conventions). 
-
-So let's do some googling to find [Parliament's daily order of business](https://www.ourcommons.ca/About/Schedules/DailyOrderOfBusiness-e.html). Mon-Thurs at 2:00PM (and Friday at 11:00AM) is time for "Statements from Members"! That's where all the spikes are! Which means women are speaking at the time each member can get exactly one minute to speak on any topic. It's also relatively high at 2:30 (same days), which is Question Period! They're talking and asking questions at the times they are allowed to do so. But they're not speaking during regular government business.
-
-Let's save that data as a csv file, read it in and join it to the data. 
-
-``` {r, echo = FALSE}
 parliament_schedule <- read_csv("parliament_schedule_2018.csv") %>% 
   gather(key = day, value = session_type, -X1) %>% 
   rename(time = X1) %>% 
@@ -327,31 +294,103 @@ psked <- parliament_schedule %>%
   filter(!is.na(session_type)) %>% 
   mutate(day = factor(day, levels = wday(1, label = TRUE) %>% levels()), hour = hour(time), minute = minute(time))
 
-gsesh <- name_time_gender %>% 
-  mutate(hour = hour(time), 
+dayplot <- words_gender %>% 
+  mutate(
+    year = year(time),
+    hour = hour(time), 
+    minute = as.integer((minute(time) %/% 15) * 15),
+    day = wday(time, label = TRUE)
+  ) %>% 
+  left_join(psked, by = c("hour", "minute", "day")) %>%
+  mutate(hms = hms::parse_hm(paste0(hour, ":", minute))) %>% 
+  filter(session_type != "Review of Delegated Legislation") %>% 
+  group_by(gender, hour, hms, day) %>% 
+  summarize(n = sum(wordcount)) %>% 
+  spread(key = gender, value = n) %>% 
+  filter(hour(hms) %>% between(8, 17)) %>%
+  filter(`F` > 5 & day != "Sat" & day != "Sun") %>% 
+  mutate(f_ratio = `F` / (M + `F`))
+
+dayplot %>%
+  filter(hour %>% between(10, 17) & !(hour > 17 & day == "Fri")) %>%
+  ggplot(aes(x = hms, y = f_ratio * 100, colour = day)) +
+  # geom_hline(yintercept = overall, colour = "#999999", linetype = 'longdash', size = 1) +
+  geom_point() +
+  geom_line() +
+  scale_colour_manual(values = colours(n_distinct(dayplot$day))) +
+  scale_x_time(breaks = hms::hms(rep(0, 24), rep(0, 24), 0:23),
+               labels = function(x) strftime(x, "%H:%M", tz = "UTC", usetz = FALSE)) +
+  # expand_limits(y = 0) +
+  labs(x = "Hour",
+       y = "% female",
+       title = "% of female speakers spikes at 2:00PM",
+       colour = "Day") +
+  theme_minimal()
+```
+
+Wow. That's a pattern I didn't expect---there's a spike at 2:00PM from Monday-Thursday, but not Friday. Weird. That cyclical activity pattern we noted before probably explains some of this. There's some information on this in the dataset (under the original heading `h1_en`), but it's not very consistent (different capitalization, spelling, naming conventions).
+
+So let's do some googling to find [Parliament's daily order of business](https://www.ourcommons.ca/About/Schedules/DailyOrderOfBusiness-e.html). Mon-Thurs at 2:00PM (and Friday at 11:00AM) is time for "Statements from Members"! That's where all the spikes are! Which means women are speaking at the time each member can get exactly one minute to speak on any topic. It's also relatively high at 2:30 (same days), which is Question Period! They're talking and asking questions at the times they are allowed to do so. But they're not speaking during regular government business.
+
+Let's save that data as a csv file, read it in and join it to the data.
+
+``` {r, echo = FALSE}
+gsesh <- words_gender %>% 
+  mutate(year = year(time),
+         hour = hour(time), 
          minute = as.integer((minute(time) %/% 15) * 15),
          day = wday(time, label = TRUE)) %>% 
   left_join(psked, by = c("hour", "minute", "day")) %>% 
-  count(gender, session_type) %>% filter(!is.na(session_type))
+  group_by(gender, year, session_type) %>% 
+  summarize(n = sum(wordcount)) %>% 
+  filter(!is.na(session_type))
 
-gsesh %>% group_by(gender) %>% 
+gsesh %>% 
+  mutate(session_type = ifelse(session_type == "Statements by Members", "Statements by Members", "Other")) %>% 
+  group_by(year, gender, session_type) %>%
+  summarize(n = sum(n)) %>% 
+  # filter(session_type != "Review of Delegated Legislation") %>% 
+  group_by(year, session_type) %>%
+  mutate(freq = n / sum(n)) %>% 
+  filter(gender == "F") %>% 
+  ggplot(aes(x = year, y = freq * 100, colour = session_type)) + 
+  geom_point() +
+  geom_line() +
+  scale_x_continuous(breaks = seq.int(1994, 2017,2), minor_breaks = 1994:2017) + 
+  scale_colour_manual(values = colours(2)) + #n_distinct(gsesh$session_type))) +
+  labs(x = "Year", 
+       y = "% words spoken by female", 
+       title = "% of words spoken by females of non-'statement' gov't\nbusiness almost doubles from 1994--2017",
+       colour = "Session Type") +
+  theme_minimal() 
+
+```
+
+Wow---Statements by Members is constant (matching the relative number of female MPs), but the % of words spoken by women has during routine business has doubled over time! Let's take a look at the deeper categories of business:
+
+``` {r, echo = FALSE}
+gsesh %>% 
+  filter(year == 2017 | year == 1994) %>% 
+  group_by(gender, session_type, year) %>% 
+  summarize(n = sum(n)) %>% 
+  group_by(gender, year) %>% 
   spread(key = gender, value = n) %>% 
   rename(`Session Type` = session_type) %>% 
   mutate(`% F` = `F` / (M + `F`)) %>%
-  arrange(-`% F`) %>% 
-  mutate(`% F` = scales::percent(`% F`)) %>% 
-  rename(`% Female` = `% F`) %>% 
-  knitr::kable("html", align = "lrrr") %>% 
-  kableExtra::kable_styling(full_width = FALSE)
+  # arrange(-`% F`) %>% 
+  mutate(`% Female` = scales::percent(`% F`)) %>% select(-`% F`, -`F`, -M) %>%
+  spread(key = year, value = `% Female`, fill = "0%") %>% 
+  knitr::kable("html", align = "lrr") %>%
+  kableExtra::kable_styling(full_width = FALSE) %>% 
+  kableExtra::add_header_above(c(" " = 1, "% female words" = 2))
 ```
 
 Dang. Alright. The ratio of female speakers in parliament doubles at times off of regular government business---suggesting they are not involved in the actual running of the government (from this data, we can't tell whether that's by choice of the individuals or by design of those in power; you be the judge). Then they jump up when they can ('statements by members', 'oral questions' and 'adjournment proceedings' are all made up on short one minute statements and question period).
 
-That's it. Parliament's gender power imbalance boils down to three facts: 
+That's it. Parliament's gender power imbalance is still poor, but has improved over time:
 
-1. there aren't many women (20-25% of members),
-2. the women that are there are underrepresented on the floor (`r scales::percent(overall)` of speakers),
-3. they speak almost twice as often during statements by members and question period than during routine government business. 
+1. Women make up 20-25% of Parliament
+2. Number of words spoken by females increases from 1994--2017 from 15% to 28%
+3. Increase mainly comes from doubling involvement in routine government business
 
 And that's before we get to the words! Who knows what these people are actually saying? [tidytext](https://github.com/juliasilge/tidytext) does! And after writing this, I found out about [Linked Parliamentary Data Project (LiPaD)](https://www.lipad.ca/data/) at the University of Toronto, an even larger historical digital source of Canadian Hansards. Who knows what we can come up with!
-
