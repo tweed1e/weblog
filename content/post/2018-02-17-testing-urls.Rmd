@@ -1,0 +1,132 @@
+---
+title: "Measuring URL health in R"
+author: "Jesse Tweedle"
+date: '2018-02-17'
+slug: testing-urls
+categories: ["r"]
+tags: ["r", "httr", "api", "url testing", "web scraping", "purrr", "httr"]
+description: 'A way to measure health of a list of URLs in R using httr and purrr.'
+image: "https://jesse.tw/images/circle-arrows.png"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      fig.height = 4, fig.width = 8)
+library(tidyverse)
+library(httr)
+library(purrr)
+```
+
+## Motivation
+
+I'm working on auditing [Canada's open data portal](https://open.canada.ca/data/en/dataset). One issue that comes up: how to verify if a link to a dataset is useful? It may redirect, it may return 404, it may return an R error, or an R warning, and the otherwise great URL packages don't have a simple way of getting all the possible errors and warnings in one command.
+
+## Data
+
+Here are some possible URLs you'll run in to; some work, some don't.
+
+``` {r}
+urls <- list(
+  times_out = "http://www.acdi-cida.gc.ca/INET/IMAGES.NSF/vLUImages/Open%20Data/$file/Country-Data-Stacked-2002-2003.csv",
+  returns_404 = "http://www.cic.gc.ca/english/visit/visas-tool.daklsd",
+  returns_warnings = "ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip",
+  success = "https://www.google.ca/",
+  redirects = "https://www.google.ca",
+  returns_error = "https://boycott.google.ca"
+) %>% enframe(value = "url") %>% mutate(url = as.character(url))
+```
+
+
+## URL success + R errors
+Ok, first up, success or not:
+
+``` {r}
+http_error("https://www.google.ca/")
+safely(http_error)("https://boycott.google.ca")$error
+```
+
+So, you'd think `http_error` would catch an error like "Could not resolve host" and return `TRUE`, but instead it crashes R. Hmm. Ok, that's fine, we'll just switch `http_error` out (because I guess it handles some `http` errors but not others) for a basic `HEAD` (which we also to handle timeouts later), and use `safely` for all calls. But we also want to check warnings, and `safely` doesn't do that, so let's use `quietly` instead:
+
+``` {r}
+safely(HEAD)("ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip")
+quietly(HEAD)("ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip")
+```
+
+But if the url really does return an error, then `quietly` crashes...ugh. So we have to use `safely` first, then `quietly`, and save the errors from `safely` and the warnings from `quietly`.
+
+``` {r}
+quietly(safely(HEAD))("https://boycott.google.ca/")
+```
+
+## Timeouts
+
+None of these will timeout yet; so if you have a link in your list that doesn't return anything, your script will hang. So you can add a `timeout` to `HEAD`:
+
+``` {r}
+# hangs:
+# HEAD("http://www.acdi-cida.gc.ca")
+
+head_timeout <- function(url) { HEAD(url, timeout(1)) }
+quietly_safely_head <- quietly(safely(head_timeout))
+
+# times out after 1 second
+quietly_safely_head("http://www.acdi-cida.gc.ca")
+```
+
+## Redirects
+
+Redirects are annoying; check the `status_code` from `HEAD` [doesn't return a redirect code (300)](https://stackoverflow.com/questions/21680643/i-would-like-to-check-if-url-redirects-to-another-page-in-r/48842128#48842128), because it follows the redirect to the new page and returns the status of that page. Instead, the `HEAD` returns a result that includes the url it actually accessed, so just check if that is the same as the url you asked for:
+
+``` {r}
+HEAD("https://www.google.ca")
+HEAD("https://www.google.ca")$url
+HEAD("https://www.google.ca")$url == "https://www.google.ca"
+```
+
+That's an admittedly weak redirect (it forces the browser to add "/" to the end of the url). But those are the kinds of details I'm looking for, as well as more egregious redirects.
+
+## Map url access function to list of urls
+
+``` {r}
+tests <- urls %>% mutate(test = map(url, quietly_safely_head))
+tests %>% select(-name)
+```
+
+## Now process the returned url objects
+
+There's too much information returned, and the objects are too complicated to study directly. Let's decide on what we really need to know. I want to know the error message (if there is one), the warnings (if they exist), the accessed url (to see if it redirected), and the status code. It's ugly because those things are returned from different calls and live at different levels in the list.
+
+``` {r}
+process_test <- function(test) {
+  result <- test$result$result
+  error <- test$result$error$message
+  warnings <- test$warnings
+  head_url <- result$url
+  status_code <- result$status_code
+  # status codes are different for FTP, see:
+  # https://en.wikipedia.org/wiki/List_of_FTP_server_return_codes
+
+  list(error = error,
+       warnings = warnings,
+       head_url = head_url,
+       status_code = status_code) %>%
+    t() %>% as_tibble()
+}
+```
+
+Now all we have to do is map the `process_test` function to the list of urls, convert the lists to strings (where appropriate; warnings is itself a list, so I want to leave it like that).
+
+``` {r}
+tests %>%
+  mutate(res = map(test, process_test)) %>%
+  unnest(res) %>%
+  mutate_at(c("error", "head_url", "status_code"), as.character) %>% 
+  mutate_at(c("error", "head_url", "status_code"), ~ ifelse(. == "NULL", NA, .)) %>%
+  mutate(redirect = head_url == url)
+```
+
+## Done!
+
+We have a list of original urls, the errors + warnings + accessed urls + status codes! Now just do this to the 150,000 urls on [https://open.canada.ca/data/en/dataset](https://open.canada.ca/data/en/dataset)!

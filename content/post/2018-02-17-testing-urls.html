@@ -1,0 +1,181 @@
+---
+title: "Measuring URL health in R"
+author: "Jesse Tweedle"
+date: '2018-02-17'
+slug: testing-urls
+categories: ["r"]
+tags: ["r", "httr", "api", "url testing", "web scraping", "purrr", "httr"]
+description: 'A way to measure health of a list of URLs in R using httr and purrr.'
+image: "https://jesse.tw/images/circle-arrows.png"
+---
+
+
+
+<div id="motivation" class="section level2">
+<h2>Motivation</h2>
+<p>I’m working on auditing <a href="https://open.canada.ca/data/en/dataset">Canada’s open data portal</a>. One issue that comes up: how to verify if a link to a dataset is useful? It may redirect, it may return 404, it may return an R error, or an R warning, and the otherwise great URL packages don’t have a simple way of getting all the possible errors and warnings in one command.</p>
+</div>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<p>Here are some possible URLs you’ll run in to; some work, some don’t.</p>
+<pre class="r"><code>urls &lt;- list(
+  times_out = &quot;http://www.acdi-cida.gc.ca/INET/IMAGES.NSF/vLUImages/Open%20Data/$file/Country-Data-Stacked-2002-2003.csv&quot;,
+  returns_404 = &quot;http://www.cic.gc.ca/english/visit/visas-tool.daklsd&quot;,
+  returns_warnings = &quot;ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip&quot;,
+  success = &quot;https://www.google.ca/&quot;,
+  redirects = &quot;https://www.google.ca&quot;,
+  returns_error = &quot;https://boycott.google.ca&quot;
+) %&gt;% enframe(value = &quot;url&quot;) %&gt;% mutate(url = as.character(url))</code></pre>
+</div>
+<div id="url-success-r-errors" class="section level2">
+<h2>URL success + R errors</h2>
+<p>Ok, first up, success or not:</p>
+<pre class="r"><code>http_error(&quot;https://www.google.ca/&quot;)
+## [1] FALSE
+safely(http_error)(&quot;https://boycott.google.ca&quot;)$error
+## &lt;simpleError in curl::curl_fetch_memory(url, handle = handle): Could not resolve host: boycott.google.ca&gt;</code></pre>
+<p>So, you’d think <code>http_error</code> would catch an error like “Could not resolve host” and return <code>TRUE</code>, but instead it crashes R. Hmm. Ok, that’s fine, we’ll just switch <code>http_error</code> out (because I guess it handles some <code>http</code> errors but not others) for a basic <code>HEAD</code> (which we also to handle timeouts later), and use <code>safely</code> for all calls. But we also want to check warnings, and <code>safely</code> doesn’t do that, so let’s use <code>quietly</code> instead:</p>
+<pre class="r"><code>safely(HEAD)(&quot;ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip&quot;)
+## $result
+## Response [ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip]
+##   Date: 2018-02-17 15:06
+##   Status: 350
+##   Content-Type: &lt;unknown&gt;
+##   Size: 91 B
+## &lt;BINARY BODY&gt;
+## 
+## $error
+## NULL
+quietly(HEAD)(&quot;ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip&quot;)
+## $result
+## Response [ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip]
+##   Date: 2018-02-17 15:06
+##   Status: 350
+##   Content-Type: &lt;unknown&gt;
+##   Size: 91 B
+## &lt;BINARY BODY&gt;
+## 
+## $output
+## [1] &quot;&quot;
+## 
+## $warnings
+## [1] &quot;NAs introduced by coercion to integer range&quot;                              
+## [2] &quot;Failed to parse headers:\n213 97668\n350 Restart position accepted (0).\n&quot;
+## 
+## $messages
+## character(0)</code></pre>
+<p>But if the url really does return an error, then <code>quietly</code> crashes…ugh. So we have to use <code>safely</code> first, then <code>quietly</code>, and save the errors from <code>safely</code> and the warnings from <code>quietly</code>.</p>
+<pre class="r"><code>quietly(safely(HEAD))(&quot;https://boycott.google.ca/&quot;)
+## $result
+## $result$result
+## NULL
+## 
+## $result$error
+## &lt;simpleError in curl::curl_fetch_memory(url, handle = handle): Could not resolve host: boycott.google.ca&gt;
+## 
+## 
+## $output
+## [1] &quot;&quot;
+## 
+## $warnings
+## character(0)
+## 
+## $messages
+## character(0)</code></pre>
+</div>
+<div id="timeouts" class="section level2">
+<h2>Timeouts</h2>
+<p>None of these will timeout yet; so if you have a link in your list that doesn’t return anything, your script will hang. So you can add a <code>timeout</code> to <code>HEAD</code>:</p>
+<pre class="r"><code># hangs:
+# HEAD(&quot;http://www.acdi-cida.gc.ca&quot;)
+
+head_timeout &lt;- function(url) { HEAD(url, timeout(1)) }
+quietly_safely_head &lt;- quietly(safely(head_timeout))
+
+# times out after 1 second
+quietly_safely_head(&quot;http://www.acdi-cida.gc.ca&quot;)
+## $result
+## $result$result
+## NULL
+## 
+## $result$error
+## &lt;simpleError in curl::curl_fetch_memory(url, handle = handle): Timeout was reached: Operation timed out after 1006 milliseconds with 0 bytes received&gt;
+## 
+## 
+## $output
+## [1] &quot;&quot;
+## 
+## $warnings
+## character(0)
+## 
+## $messages
+## character(0)</code></pre>
+</div>
+<div id="redirects" class="section level2">
+<h2>Redirects</h2>
+<p>Redirects are annoying; check the <code>status_code</code> from <code>HEAD</code> <a href="https://stackoverflow.com/questions/21680643/i-would-like-to-check-if-url-redirects-to-another-page-in-r/48842128#48842128">doesn’t return a redirect code (300)</a>, because it follows the redirect to the new page and returns the status of that page. Instead, the <code>HEAD</code> returns a result that includes the url it actually accessed, so just check if that is the same as the url you asked for:</p>
+<pre class="r"><code>HEAD(&quot;https://www.google.ca&quot;)
+## Response [https://www.google.ca/]
+##   Date: 2018-02-17 20:06
+##   Status: 200
+##   Content-Type: text/html; charset=ISO-8859-1
+## &lt;EMPTY BODY&gt;
+HEAD(&quot;https://www.google.ca&quot;)$url
+## [1] &quot;https://www.google.ca/&quot;
+HEAD(&quot;https://www.google.ca&quot;)$url == &quot;https://www.google.ca&quot;
+## [1] FALSE</code></pre>
+<p>That’s an admittedly weak redirect (it forces the browser to add “/” to the end of the url). But those are the kinds of details I’m looking for, as well as more egregious redirects.</p>
+</div>
+<div id="map-url-access-function-to-list-of-urls" class="section level2">
+<h2>Map url access function to list of urls</h2>
+<pre class="r"><code>tests &lt;- urls %&gt;% mutate(test = map(url, quietly_safely_head))
+tests %&gt;% select(-name)
+## # A tibble: 6 x 2
+##   url                                                              test   
+##   &lt;chr&gt;                                                            &lt;list&gt; 
+## 1 http://www.acdi-cida.gc.ca/INET/IMAGES.NSF/vLUImages/Open%20Dat… &lt;list …
+## 2 http://www.cic.gc.ca/english/visit/visas-tool.daklsd             &lt;list …
+## 3 ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST… &lt;list …
+## 4 https://www.google.ca/                                           &lt;list …
+## 5 https://www.google.ca                                            &lt;list …
+## 6 https://boycott.google.ca                                        &lt;list …</code></pre>
+</div>
+<div id="now-process-the-returned-url-objects" class="section level2">
+<h2>Now process the returned url objects</h2>
+<p>There’s too much information returned, and the objects are too complicated to study directly. Let’s decide on what we really need to know. I want to know the error message (if there is one), the warnings (if they exist), the accessed url (to see if it redirected), and the status code. It’s ugly because those things are returned from different calls and live at different levels in the list.</p>
+<pre class="r"><code>process_test &lt;- function(test) {
+  result &lt;- test$result$result
+  error &lt;- test$result$error$message
+  warnings &lt;- test$warnings
+  head_url &lt;- result$url
+  status_code &lt;- result$status_code
+  # status codes are different for FTP, see:
+  # https://en.wikipedia.org/wiki/List_of_FTP_server_return_codes
+
+  list(error = error,
+       warnings = warnings,
+       head_url = head_url,
+       status_code = status_code) %&gt;%
+    t() %&gt;% as_tibble()
+}</code></pre>
+<p>Now all we have to do is map the <code>process_test</code> function to the list of urls, convert the lists to strings (where appropriate; warnings is itself a list, so I want to leave it like that).</p>
+<pre class="r"><code>tests %&gt;%
+  mutate(res = map(test, process_test)) %&gt;%
+  unnest(res) %&gt;%
+  mutate_at(c(&quot;error&quot;, &quot;head_url&quot;, &quot;status_code&quot;), as.character) %&gt;% 
+  mutate_at(c(&quot;error&quot;, &quot;head_url&quot;, &quot;status_code&quot;), ~ ifelse(. == &quot;NULL&quot;, NA, .)) %&gt;%
+  mutate(redirect = head_url == url)
+## # A tibble: 6 x 8
+##   name   url       test   error   warnings head_url   status_code redirect
+##   &lt;chr&gt;  &lt;chr&gt;     &lt;list&gt; &lt;chr&gt;   &lt;list&gt;   &lt;chr&gt;      &lt;chr&gt;       &lt;lgl&gt;   
+## 1 times… http://w… &lt;list… Timeou… &lt;chr [0… &lt;NA&gt;       &lt;NA&gt;        NA      
+## 2 retur… http://w… &lt;list… &lt;NA&gt;    &lt;chr [0… http://ww… 404         TRUE    
+## 3 retur… ftp://ft… &lt;list… &lt;NA&gt;    &lt;chr [2… ftp://ftp… 350         TRUE    
+## 4 succe… https://… &lt;list… &lt;NA&gt;    &lt;chr [0… https://w… 200         TRUE    
+## 5 redir… https://… &lt;list… &lt;NA&gt;    &lt;chr [0… https://w… 200         FALSE   
+## 6 retur… https://… &lt;list… Could … &lt;chr [0… &lt;NA&gt;       &lt;NA&gt;        NA</code></pre>
+</div>
+<div id="done" class="section level2">
+<h2>Done!</h2>
+<p>We have a list of original urls, the errors + warnings + accessed urls + status codes! Now just do this to the 150,000 urls on <a href="https://open.canada.ca/data/en/dataset" class="uri">https://open.canada.ca/data/en/dataset</a>!</p>
+</div>
