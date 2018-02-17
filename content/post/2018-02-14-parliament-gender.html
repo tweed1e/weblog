@@ -16,7 +16,7 @@ image: "https://jesse.tw/images/circle-arrows.png"
 <h2>Summary</h2>
 <ol style="list-style-type: decimal">
 <li>Women make up <a href="http://www.cbc.ca/news2/interactives/women-politics/">20-25% of Parliament</a></li>
-<li>Number of words spoken by females increases from 1994–2017 from 15% to 28%</li>
+<li>Number of words spoken by women increases from 1994–2017 from 15% to 28%</li>
 <li>Increase mainly comes from doubling involvement in routine government business</li>
 <li>Nice to have Trudeau’s <a href="http://www.cbc.ca/news2/interactives/women-politics/">gender-balanced cabinet</a>, but female MPs are also becoming more involved in day-to-day operations</li>
 </ol>
@@ -157,13 +157,13 @@ han_df %&gt;% print(n = 5)
 han_df &lt;- han_df %&gt;% mutate(time = with_tz(time, &quot;America/Toronto&quot;))
 han_df %&gt;% sample_n(5) # an easy way to look at a random sample of observations instead of just the first 10
 ## # A tibble: 5 x 11
-##   time                h1_en  h2_en h3_en who_en    politician_id wordcount
-##   &lt;dttm&gt;              &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;             &lt;int&gt;     &lt;int&gt;
-## 1 2004-04-23 11:30:00 Oral … Spon… &lt;NA&gt;  Hon. Ann…          1951        52
-## 2 2006-10-05 17:15:00 &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;  The Chair           201         3
-## 3 2002-04-18 11:40:00 Routi… Comm… &lt;NA&gt;  The Acti…            NA        29
-## 4 2010-11-18 16:59:00 &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;  The Chair           424        48
-## 5 1998-02-19 14:15:00 Oral … The … &lt;NA&gt;  Right Ho…          5241        76
+##   time                h1_en   h2_en h3_en who_en   politician_id wordcount
+##   &lt;dttm&gt;              &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;            &lt;int&gt;     &lt;int&gt;
+## 1 2017-10-23 17:30:00 &lt;NA&gt;    &lt;NA&gt;  &lt;NA&gt;  Ms. Meg…            NA         2
+## 2 2016-06-06 15:25:00 Routin… Priv… &lt;NA&gt;  The Spe…           242        33
+## 3 2011-02-03 12:25:00 &lt;NA&gt;    &lt;NA&gt;  &lt;NA&gt;  Mr. Yve…           169       148
+## 4 2013-02-14 09:05:00 &lt;NA&gt;    &lt;NA&gt;  &lt;NA&gt;  Chief M…            NA        28
+## 5 2007-03-29 13:40:00 &lt;NA&gt;    &lt;NA&gt;  &lt;NA&gt;  Mr. Pau…           421         2
 ## # ... with 4 more variables: who_hocid &lt;chr&gt;, who_context_en &lt;chr&gt;,
 ## #   name &lt;chr&gt;, gender &lt;chr&gt;</code></pre>
 <p>Ok, now we’re getting somewhere. I want to check two things: (1) what does the time distribution look like? and (2) can we get the gender of the MPs from names? We got genders from the politician database, but there are some sanity checks we’ll need. Leave that for later.</p>
@@ -186,13 +186,13 @@ han_df %&gt;% sample_n(5) # an easy way to look at a random sample of observatio
   filter(gender != &quot;&quot;)
 words_gender %&gt;% select(who_en, gender, gender_x) %&gt;% sample_n(5)
 ## # A tibble: 5 x 3
-##   who_en             gender gender_x
-##   &lt;chr&gt;              &lt;chr&gt;  &lt;chr&gt;   
-## 1 Mr. Jacques Gourde M      M       
-## 2 Hon. Scott Brison  M      &quot;&quot;      
-## 3 The Chair          M      &quot;&quot;      
-## 4 Hon. Marc Garneau  M      &quot;&quot;      
-## 5 Mr. Brian Ferguson M      M</code></pre>
+##   who_en                             gender gender_x
+##   &lt;chr&gt;                              &lt;chr&gt;  &lt;chr&gt;   
+## 1 The Chair                          M      &quot;&quot;      
+## 2 Mr. Larry Bagnell (Yukon, Lib.)    M      M       
+## 3 The Chair                          M      &quot;&quot;      
+## 4 The Chair                          M      &quot;&quot;      
+## 5 The Vice-Chair (Mr. Malcolm Allen) M      M</code></pre>
 Ok, that’s not bad; now what are the overall statistics?
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -233,7 +233,7 @@ M
 </tr>
 </tbody>
 </table>
-<p>Not great. Does it change over time? We know 2015 was a record breaking election for female candidates; on the other hand, the previous record was 1993. So in between: 🤷🏽.</p>
+<p>Not great. Does it change over time? We know 2015 was a record breaking election for female candidates; on the other hand, the previous record was 1993. So in between: 🤷🏾‍♂️.</p>
 <p><img src="/post/2018-02-14-parliament-gender_files/figure-html/unnamed-chunk-10-1.png" width="768" /></p>
 <p>Whoops. There’s an obvious break in the series for Count—so something happened to the data collection or the structure of the hansard (it’s less likely that parliament itself changed significantly at that time). On the plus side, women get more words in Parliament over time!</p>
 </div>
@@ -341,7 +341,7 @@ Statements by Members
 <p>That’s it. Parliament’s gender power imbalance is still poor, but has improved over time:</p>
 <ol style="list-style-type: decimal">
 <li>Women make up 20-25% of Parliament</li>
-<li>Number of words spoken by females increases from 1994–2017 from 15% to 28%</li>
+<li>Number of words spoken by women increases from 1994–2017 from 15% to 28%</li>
 <li>Increase mainly comes from doubling involvement in routine government business</li>
 </ol>
 <p>And that’s before we get to the words! Who knows what these people are actually saying? <a href="https://github.com/juliasilge/tidytext">tidytext</a> does! And after writing this, I found out about <a href="https://www.lipad.ca/data/">Linked Parliamentary Data Project (LiPaD)</a> at the University of Toronto, an even larger historical digital source of Canadian Hansards. Who knows what we can come up with!</p>

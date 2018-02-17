@@ -22,7 +22,7 @@ colours <- function(nlevels) { viridis::magma(nlevels+1)[-nlevels-1] }
 ## Summary
 
 1. Women make up [20-25% of Parliament](http://www.cbc.ca/news2/interactives/women-politics/)
-2. Number of words spoken by females increases from 1994--2017 from 15% to 28%
+2. Number of words spoken by women increases from 1994--2017 from 15% to 28%
 3. Increase mainly comes from doubling involvement in routine government business
 4. Nice to have Trudeau's [gender-balanced cabinet](http://www.cbc.ca/news2/interactives/women-politics/), but female MPs are also becoming more involved in day-to-day operations
 
@@ -360,7 +360,7 @@ gsesh %>%
   scale_colour_manual(values = colours(2)) + #n_distinct(gsesh$session_type))) +
   labs(x = "Year", 
        y = "% words spoken by female", 
-       title = "% of words spoken by females of non-'statement' gov't\nbusiness almost doubles from 1994--2017",
+       title = "% of words spoken by women of non-'statement' gov't\nbusiness almost doubles from 1994--2017",
        colour = "Session Type") +
   theme_minimal() 
 
@@ -390,7 +390,7 @@ Dang. Alright. The ratio of female speakers in parliament doubles at times off o
 That's it. Parliament's gender power imbalance is still poor, but has improved over time:
 
 1. Women make up 20-25% of Parliament
-2. Number of words spoken by females increases from 1994--2017 from 15% to 28%
+2. Number of words spoken by women increases from 1994--2017 from 15% to 28%
 3. Increase mainly comes from doubling involvement in routine government business
 
 And that's before we get to the words! Who knows what these people are actually saying? [tidytext](https://github.com/juliasilge/tidytext) does! And after writing this, I found out about [Linked Parliamentary Data Project (LiPaD)](https://www.lipad.ca/data/) at the University of Toronto, an even larger historical digital source of Canadian Hansards. Who knows what we can come up with!
