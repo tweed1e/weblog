@@ -124,7 +124,7 @@ tests %>%
   unnest(res) %>%
   mutate_at(c("error", "head_url", "status_code"), as.character) %>% 
   mutate_at(c("error", "head_url", "status_code"), ~ ifelse(. == "NULL", NA, .)) %>%
-  mutate(redirect = head_url == url)
+  mutate(redirect = head_url != url)
 ```
 
 ## Done!
