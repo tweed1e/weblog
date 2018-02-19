@@ -533,7 +533,7 @@ ttps
 </tr>
 </tbody>
 </table>
-<p>Ugh. About 99% are on insecure protocols, which apparently are going to be <a href="https://www.theverge.com/2018/2/8/16991254/chrome-not-secure-marked-http-encryption-ssl">marked <code>insecure</code> by chrome</a> in a couple of months (July 2018).</p>
+<p>Ugh. About 99% are on http/ftp protocols, which apparently are going to be <a href="https://www.theverge.com/2018/2/8/16991254/chrome-not-secure-marked-http-encryption-ssl">marked <code>insecure</code> by chrome</a> in a couple of months (July 2018).</p>
 </div>
 <div id="weird-and-wrong-urls" class="section level3">
 <h3>Weird and wrong URLs</h3>
@@ -704,7 +704,7 @@ cgi
 </div>
 <div id="test-urls" class="section level2">
 <h2>Test URLs</h2>
-<p>Next, test the URLs! First, filter the non-dataset survey maps (which all have the hostnames <code>clss.nrcan.gc.ca</code> or <code>satc.rncan.gc.ca</code>). Use strat I outlined in my previous post <a href="post/testing-urls/">Measuring URL health in R</a>.</p>
+<p>Next, test the URLs! First, filter the non-dataset survey maps (which all have the hostnames <code>clss.nrcan.gc.ca</code> or <code>satc.rncan.gc.ca</code>). Use strat I outlined in my previous post <a href="/post/testing-urls/">Measuring URL health in R</a>.</p>
 <pre class="r"><code>head_timeout &lt;- function(url) {
   Sys.sleep(0.25)
   HEAD(url, timeout(5))
@@ -835,7 +835,7 @@ Could not resolve host
 </tr>
 </tbody>
 </table>
-<p>93.7% don’t have errors, but 6.2% timeout (they’re all from <a href="acdi-cida.gc.ca" class="uri">acdi-cida.gc.ca</a>, which just doesn’t work). Come on. 6% of the datasets don’t work! And if you don’t set a timeout on your HEAD request, your R session hangs! 😡❗️.</p>
+<p>93.7% don’t have errors, but 6.2% timeout (they’re all from <a href="http://acdi-cida.gc.ca">acdi-cida.gc.ca</a>, which just doesn’t work). Come on. 6% of the datasets don’t work! And if you don’t set a timeout on your HEAD request, your R session hangs! 😡❗️.</p>
 <pre class="r"><code>## status codes:
 # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 # https://en.wikipedia.org/wiki/List_of_FTP_server_return_codes

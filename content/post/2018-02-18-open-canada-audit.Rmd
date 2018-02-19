@@ -192,7 +192,7 @@ api_datasets %>%
   kableExtra::kable_styling(full_width = FALSE)
 ```
 
-Ugh. About 99% are on insecure protocols, which apparently are going to be [marked `insecure` by chrome](https://www.theverge.com/2018/2/8/16991254/chrome-not-secure-marked-http-encryption-ssl) in a couple of months (July 2018).
+Ugh. About 99% are on http/ftp protocols, which apparently are going to be [marked `insecure` by chrome](https://www.theverge.com/2018/2/8/16991254/chrome-not-secure-marked-http-encryption-ssl) in a couple of months (July 2018).
 
 ### Weird and wrong URLs
 
@@ -227,7 +227,7 @@ to small subsets of people. So I'll leave that (dot dot dot) for now.
 
 ## Test URLs
 
-Next, test the URLs! First, filter the non-dataset survey maps (which all have the hostnames `clss.nrcan.gc.ca` or `satc.rncan.gc.ca`). Use strat I outlined in my previous post [Measuring URL health in R](post/testing-urls/).
+Next, test the URLs! First, filter the non-dataset survey maps (which all have the hostnames `clss.nrcan.gc.ca` or `satc.rncan.gc.ca`). Use strat I outlined in my previous post [Measuring URL health in R](/post/testing-urls/).
 
 ``` {r, eval = FALSE}
 head_timeout <- function(url) {
@@ -306,7 +306,7 @@ api_test_results %>%
   kableExtra::kable_styling(full_width = FALSE)
 ```
 
-93.7% don't have errors, but 6.2% timeout (they're all from [acdi-cida.gc.ca](acdi-cida.gc.ca), which just doesn't work). Come on. 6% of the datasets don't work! And if you don't set a timeout on your HEAD request, your R session hangs! `r emo::ji('rage')``r emo::ji('exclamation')`.
+93.7% don't have errors, but 6.2% timeout (they're all from [acdi-cida.gc.ca](http://acdi-cida.gc.ca), which just doesn't work). Come on. 6% of the datasets don't work! And if you don't set a timeout on your HEAD request, your R session hangs! `r emo::ji('rage')``r emo::ji('exclamation')`.
 
 
 ``` {r}
