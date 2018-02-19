@@ -1,0 +1,414 @@
+---
+title: "Open Canada `r emo::ji('canada')` Audit with R: C+"
+author: "Jesse Tweedle"
+date: '2018-02-18'
+slug: open-canada-audit
+categories: ["r"]
+tags: ["r", "open data", "open washing", "api", "rstats", "tidyverse", "data audit"]
+description: "Canada's open data portal gets a C+. Get ready for a million tables describing the metadata-only API and the sometimes open data links they provide."
+image: "https://jesse.tw/images/circle-arrows.png"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      fig.height = 4, fig.width = 8)
+library(tidyverse)
+library(purrr)
+library(httr)
+```
+
+
+## Motivation
+
+Open data is an important way to get information in the hands of citizens. Not only for government transparency, but also to make it easier for citizens to access data that has been available for years behind poor user interface design (don't get me started on CANSIM). Canada has put this into words with [open data principles](https://open.canada.ca/en/open-data-principles) and a plan for [open government partnership](https://open.canada.ca/en/content/third-biennial-plan-open-government-partnership); a good first step, otherwise how would I know how to judge them? And more importantly, they've followed that up with action: the [open.canada.ca API](https://open.canada.ca/en/open-data).
+
+([Skip to the answers.](#answers))
+
+### Rubric
+
+I focus on a [few open data principles](https://open.canada.ca/en/open-data-principles) I can evaluate directly (e.g., without subject matter knowledge or checking individual datasets and shapefiles).
+
+#### 4. Ease of Physical and Electronic Access
+
+> By contrast, providing an interface for users to make specific calls for data through an Application Programming Interface (API) make data much more readily accessible
+
+#### 5. Machine Readability
+
+> Datasets released by the Government of Canada should be stored in widely-used file formats that easily lend themselves to machine processing (e.g. CSV, XML).
+
+#### The fucking links should work (too obvious to be labelled a principle but needs to be evaluated anyway)
+
+This one's easy---if I click on a link to a dataset, I want it to download the dataset, not get redirected or 404-ed or timeout.
+
+#### True information content (also not an official principle, but a way to avoid open washing)
+
+We're bilingual in Canada, so we usually provide every government product in two official languages, English and French. But a dataset copied exactly with metadata translated from English to French is good (and required) for citizens, but it's not really double the amount of information. The same goes for subsetting datasets. As we'll see later, survey maps of small areas seem to have been posted as individual open datasets---that's not really 100,000 datasets, it's really a single dataset of survey maps, right?
+
+That's like taking a GDP-by-province dataset and splitting into 13 separate datasets and saying it's 13 times as much information. Miss me with that open washing.
+
+### Strategy
+
+Evaluate these four characteristics by:
+
+1. check for ease of access of data from the API
+2. check if datasets are available in machine readable and common formats
+3. check if the links actually work
+4. check (broadly) for unique content
+
+For me, for now, the rubric is mainly based on dataset availability, but a true audit will need to check and re-check the milestones listed under https://open.canada.ca/en/content/third-biennial-plan-open-government-partnership#toc5-1-3)
+the open government plan, e.g.:
+
+> Set a baseline for the total volume of open data to be released over time and establish departmental targets for the publication of releasable data over the next five years
+
+
+## Accessing the API
+
+My first idea was to write an R wrapper for the Canada's open data API, like [Kyle Walker's](https://twitter.com/kyle_e_walker) [tidycensus](https://github.com/walkerke/tidycensus) R package for the US census---so useful.
+
+Wrong---unless I'm super dumb, the API gives you metadata only. The docs give example code for accessing one that returns data, but [the example they give](https://open.canada.ca/en/working-data#toc93) (http://www.earthquakescanada.nrcan.gc.ca/api/earthquakes) isn't for an NRCAN API, not this one, which is confusing
+
+So I can't get data directly from the API. (Although I think there might be a wrapper for [https://censusmapper.ca/api](https://censusmapper.ca/api).) I have to search the API for a certain package, and then follow the link to a new site and try to download it from there. How do I know if there are consistent rate limits or scraping prohibitions on any of these datasets if they link to different websites? Whose responsbility is it to fix broken links, outdated documentation, or incorrect metadata? Who knows. 
+
+So Principle 4 *Ease of Physical and Electronic Access* is out. The API doesn't access data. Although I'll stipulate that one can access a link that can access data to evaluate the other principles. 
+
+The [docs don't give R examples](https://open.canada.ca/en/working-data) anyway, but it's a [CKAN API](https://ckan.org/), and [rOpenSci](https://ropensci.org/) wrote an R package called [ckanr](https://github.com/ropensci/ckanr) that makes it a bit easier to access, although I think it was meant for APIs with keys, because I can't set a `user-agent` as Hadley Wickham suggests in the `httr` vignette [Best practices for API packages](https://cran.r-project.org/web/packages/httr/vignettes/api-packages.html). Oh well.
+
+I'll load the package, set it up with the link I want, and search through and save the packages. I use a loop because the search only returns 1000 packages at once, but you can specify where to start and stop the search. So I search until I can't get any more. With a `Sys.sleep` for 10 seconds just in case; I have no idea if there's a rate limit for these.
+
+``` {r, eval = FALSE}
+library(ckanr) # package to access CKAN APIs
+
+ckanr_setup(url = "http://open.canada.ca/data/en/")
+
+api_result <- c()
+# returns 1000 packages
+# so start at the first,
+# get 1000 until you can't get any more
+i <- 1
+step <- 1000
+
+while (TRUE) {
+  temp_search <- package_search(q = '*:*', rows = step, start = i)$results
+  print(paste0(i, " ", length(temp_search)))
+  if (length(temp_search) == 0) break
+  api_result <- c(api_result, temp_search)
+  i <- i + step
+  Sys.sleep(10) # no idea about rate limits for this, 
+                # so just sleep for 10 seconds
+                # before going again
+}
+```
+
+Now `api_result` has a list of package metadata, including all the links to possible datasets. One package may have several links for one dataset in different formats and languages, as well as documentation links. So pull out the package `id` and `resources` that contain all the information I want; I'll also want a bit more information on the organization that published the data. I use `purrr` liberally to try to simplify the process of converting a list of lists of lists to a `tibble` we're more comfortable with.
+
+``` {r, eval = FALSE}
+api_resources <- api_result %>%
+  map(`[`, c("id", "resources")) %>%
+  map(enframe) %>%
+  map(~ spread(.x, key = "name", value = "value")) %>%
+  map(~ mutate(.x, id = map_chr(id, ~.x))) %>% bind_rows()
+
+api_resources_unnest <- api_resources %>%
+  mutate(resource_urls = map(resources, map_chr, ~.x[["url"]]),
+         resource_type = map(resources, map_chr, ~.x[["resource_type"]])) %>%
+  unnest(resource_urls, resource_type)
+
+# also metadata, including organization that published the data.
+api_metadata <- api_result %>%
+  map(`[`, c("id", "org_title_at_publication", "spatial")) %>% map_df(. %>% unlist() %>% t() %>% as_tibble()) %>%
+  mutate(spatial = is.na(spatial) | spatial != "")
+
+# and merge those together.
+api_resources <- api_resources_unnest %>%
+  left_join(api_metadata, by = c("id")) # merge on metadata
+
+# save and compress the data for you to check
+write_csv(api_resources, "api_resources.csv")
+zip("api_resources.zip", "api_resources.csv")
+```
+
+## Overview
+
+Let's check basic characteristics of the datasets.
+
+### Resource type breakdown
+
+``` {r, eval = TRUE}
+# later, eval = TRUE, but fix tables first.
+api_resources <- read_csv("api_resources.zip")
+
+api_resources %>%
+  count(resource_type, sort = TRUE) %>%
+  mutate(Freq = scales::percent(n / sum(n))) %>%
+  slice(1:10) %>%
+  rename(`Resource type` = resource_type, Count = n) %>%
+  knitr::kable("html", align = "lrr", caption = "Breakdown of resource types") %>% 
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+About 150,000 (which means about 75000 or less, since half of them are probably translations). Shouldn't there be way more documentation? Like one for each dataset? Like 75000-ish pieces of documentation?
+
+### Organization breakdown
+
+``` {r}
+api_datasets <- api_resources %>% filter(resource_type == "dataset")
+
+api_datasets %>%
+  count(org_title_at_publication.en, org_title_at_publication.fr, sort = TRUE) %>%
+  slice(1:10) %>%
+  mutate(Freq = scales::percent(n / sum(n))) %>%
+  rename(`Organization (English)` = org_title_at_publication.en,
+         `Organization (French)` = org_title_at_publication.fr,
+         Count = n) %>%
+  knitr::kable("html", align = "llrr", caption = "Organization breakdown") %>%
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+NRCAN/RNCAN is producing most of them. Which means they're probably just individual maps, which is not great for the 'unique information content' principle. Are 100,000 individual maps of different areas in Canada different than one big map of Canada? idk.
+
+``` {r}
+api_datasets %>%
+  count(org_title_at_publication.en, org_title_at_publication.fr) %>%
+  filter(is.na(org_title_at_publication.en) | is.na(org_title_at_publication.fr))
+```
+
+Whoops, I guess a few of the organization titles were also a bit messed up.
+
+## Investigate URLs
+
+This is the crux of the argument. I check machine readability and link health.
+
+### Schemes---http vs https vs ftp, etc.
+
+``` {r, eval = TRUE}
+api_datasets %>%
+  mutate(scheme = tolower(scheme)) %>%
+  count(scheme) %>%
+  mutate(Freq = scales::percent(n / sum(n))) %>%
+  rename(Scheme = scheme, Count = n) %>%
+  knitr::kable("html", align = "lrr", caption = "Breakdown of schemes---mostly insecure") %>% 
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+Ugh. About 99% are on insecure protocols, which apparently are going to be [marked `insecure` by chrome](https://www.theverge.com/2018/2/8/16991254/chrome-not-secure-marked-http-encryption-ssl) in a couple of months (July 2018).
+
+### Weird and wrong URLs
+
+``` {r, eval = TRUE}
+api_datasets %>%
+  select(hostname) %>%
+  filter(!grepl("(ca|fr|gov|net|com|org)$", x = hostname))
+```
+Well, those are just wrong (except one is just an IP address, which is strange but it works). Also there are some non-Canadian hosts for some reason (I needed to filter hostnames for `.fr`, `.gov`, `.net`, etc.).
+
+### File types
+
+``` {r, eval = TRUE}
+file_types <- api_datasets %>%
+  mutate(type = path %>%
+           str_match("\\.[A-Za-z]{3,4}$") %>%
+           gsub("\\.", "", x = .) %>% tolower())
+
+file_types %>%
+  count(type, sort = TRUE) %>%
+  slice(1:10) %>%
+  mutate(Freq = scales::percent(n / sum(n))) %>%
+  rename(Filetype = type, Count = n) %>%
+  knitr::kable("html", align = "lrr", caption = "Breakdown of file types listed in the API") %>% 
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+So many php and `NA`s, that's not good. `NA` means the file path regular expression didn't pick up a file type, so it's probably not a file. php isn't a machine readable dataset, it's usually just used to make HTML. Aka it's just a webpage that may or may not give you easy access to data (check one example here: http://gdr.agg.nrcan.gc.ca/gdrdap/dap/index-eng.php?data_file_name=Sylvan+lignite+channel.gdb). 
+
+There are a decent number of zips (ok, but no way to tell what's in it), csvs (good, usually), pdfs (no no no no no). And a million others I've never heard of, so I have no idea whether they're really useful and machine readable datasets or not. I won't say they're not useful only bc I don't know them; they might just be a bunch of very idiosyncratic formats for things that are very useful
+to small subsets of people. So I'll leave that (dot dot dot) for now.
+
+## Test URLs
+
+Next, test the URLs! First, filter the non-dataset survey maps (which all have the hostnames `clss.nrcan.gc.ca` or `satc.rncan.gc.ca`). Use strat I outlined in my previous post [Measuring URL health in R](post/testing-urls/).
+
+``` {r, eval = FALSE}
+head_timeout <- function(url) {
+  Sys.sleep(0.25)
+  HEAD(url, timeout(5))
+}
+quietly_safely_head <- quietly(safely(head_timeout))
+
+api_test_urls <- api_datasets %>%
+  filter(!hostname %in% c("clss.nrcan.gc.ca", "satc.rncan.gc.ca")) %>%
+  mutate(test = map(resource_urls, list))
+
+# loop, bc I don't want to lose it if I lose internet access or something.
+for (i in seq_len(nrow(api_test_urls))) {
+  print(paste0(i, ": ", api_test_urls[i, ]$resource_urls))
+  api_test_urls[i, ]$api_test_urls <- list(quietly_safely_head(api_test_urls[i, ]$resource_urls))
+}
+```
+
+We've sent a HEAD request to every dataset listed in the API. Now let's process the results and see what they say.
+
+``` {r, eval = FALSE}
+# func to process url test results.
+process_test <- function(test) {
+  result <- test$result$result
+  error <- test$result$error$message
+
+  warnings <- test$warnings
+
+  if (!is.null(warnings) && length(warnings) > 0) {
+    warnings <- warnings[[length(warnings)]]
+  } else {
+    warnings <- ""
+  }
+
+  head_url <- result$url
+  status_code <- result$status_code
+  # status codes are different for FTP, see:
+  # https://en.wikipedia.org/wiki/List_of_FTP_server_return_codes
+
+  list(error = error,
+       warnings = warnings,
+       head_url = head_url,
+       status_code = status_code) %>%
+    t() %>% as_tibble()
+}
+
+api_test_results <- api_test_urls %>%
+  mutate(res = map(test, process_test)) %>%
+  unnest(res) %>%
+  mutate_at(c("error", "head_url", "status_code", "warnings"), as.character) %>%
+  mutate_at(c("error", "head_url", "status_code", "warnings"), ~ ifelse(. %in% c("NULL", ""), NA, .)) %>%
+  mutate(redirect = head_url != resource_urls) %>%
+  select(resource_urls, error, warnings, head_url, status_code, redirect) %>%
+  mutate(error_type = case_when(
+    is.na(error) ~ "None",
+    grepl("Could not resolve host", x = error) ~ "Could not resolve host",
+    grepl("Timeout was reached", x = error) ~ "Timeout",
+    TRUE ~ "Other"
+  ))
+```
+
+^^ We've saved errors, warnings, status codes, and redirected URLs. Let's go.
+
+### Subtests, errors, warnings, etc.
+
+Write stuff.
+``` {r, eval = TRUE}
+api_test_results <- read_csv("api_test_results.zip")
+
+api_test_results %>%
+  count(error_type, sort = TRUE) %>%
+  mutate(Freq = scales::percent(n / sum(n))) %>%
+  rename(`Error type` = error_type, Count = n) %>%
+  knitr::kable("html", align = "lrr", caption = "Breakdown of url errors") %>%
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+93.7% don't have errors, but 6.2% timeout (they're all from [acdi-cida.gc.ca](acdi-cida.gc.ca), which just doesn't work). Come on. 6% of the datasets don't work! And if you don't set a timeout on your HEAD request, your R session hangs! `r emo::ji('rage')``r emo::ji('exclamation')`.
+
+
+``` {r}
+## status codes:
+# https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+# https://en.wikipedia.org/wiki/List_of_FTP_server_return_codes
+
+api_test_results %>%
+  left_join(api_datasets %>%
+              mutate(scheme = tolower(scheme)) %>%
+              distinct(resource_urls, scheme), by = "resource_urls") %>%
+  count(status_code, scheme) %>%
+  filter(!scheme %in% c("file", "ttps")) %>%
+  group_by(scheme) %>%
+  mutate(freq = scales::percent(n / sum(n))) %>% # need to group by FTP as well.
+  select(-n) %>%
+  spread(key = scheme, value = freq) %>%
+  rename(`Status code` = status_code) %>%
+  knitr::kable("html", align = "crrr", caption = "URL status codes by scheme") %>%
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+Ok, 88% of the http requests, 81% of the https requests, and 98.5% of the ftp requests return ok. ([ftp status codes](https://en.wikipedia.org/wiki/List_of_FTP_server_return_codes) and [http status codes](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes) have different specs). `NA` status codes means I never got to the status because the request didn't even work---these are the timeout and **could not resolve host** errors from before.
+
+``` {r}
+# lol. those aren't great. redirects that are really 404s
+api_test_results %>%
+  filter(status_code == "300") %>%
+  distinct(resource_urls, head_url) %>% glimpse()
+```
+
+Dang, the 300 status returns are really [just redirects to a 404](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#3xx_Redirection), so I'm counting them as 404s later. Don't give me that.
+
+``` {r}
+# Clean data to make result tables
+api_test_results_table <- api_test_results %>%
+  mutate(warnings = !is.na(warnings)) %>%
+  mutate(status_code = case_when(
+    status_code == "300" ~ "4xx",
+    substr(status_code, 1, 1) == "2" | status_code == "350" ~ "2xx", # includes 350 FTP status.
+    substr(status_code, 1, 1) == "4" ~ "4xx",
+    substr(status_code, 1, 1) == "5" ~ "5xx",
+    TRUE ~ "xxx"
+  )) %>%
+  count(status_code, error_type = error_type != "None", redirect, warnings)
+```
+
+<!-- -->
+
+``` {r}
+api_test_results_table %>% 
+  mutate(freq = scales::percent(n / sum(n))) %>%
+  select(-n) %>%
+  filter(error_type == FALSE) %>% select(-error_type) %>%
+  spread(key = status_code, value = freq, fill = "0%") %>%
+  rename(Redirect = redirect, Warning = warnings) %>%
+  knitr::kable("html", align = "ccrrr", caption = "Breakdown of URL status (freq.)") %>%
+  kableExtra::kable_styling(full_width = FALSE) %>%
+  kableExtra::add_header_above(c(" " = 2, "Status code" = 3))
+```
+
+Here, I've made a frequency table (above) and a count table (below) of the errors, warnings and status codes of all the datasets.
+
+``` {r}
+api_test_results_table %>%
+  filter(error_type == FALSE) %>% select(-error_type) %>%
+  spread(key = status_code, value = n, fill = "0") %>%
+  rename(Redirect = redirect, Warning = warnings) %>%
+  knitr::kable("html", align = "ccrrr", caption = "Breakdown of URL status (counts)") %>%
+  kableExtra::kable_styling(full_width = FALSE) %>%
+  kableExtra::add_header_above(c(" " = 2, "Status code" = 3))
+
+```
+
+I think 40000 (about 72%) datasets look good, without errors or warnings. About 1500 return 404s, and about 3000 are redirected (with or without warnings) from their original links.
+
+### Back to the rubric {#answers}
+
+#### 4. Ease of Physical and Electronic Access
+
+The API doesn't access data directly, making you link to other websites to access data, without any idea of whether it's ok to scrape, different rate limits, different specifications, or even whether the hosts work (which they don't, in some cases; see, e.g., [ACDI-CIDA datasets](http://www.acdi-cida.gc.ca/acdi-cida/ACDI-CIDA.nsf/eng/CAR-616141241-PD4), because I guess CIDA was folded into Foreign Affairs, but nobody told the dataset links!).
+
+C+. Only because the `ckanr` package made it pretty easy to access the API without having to understand the docs on the Open Canada page.
+
+#### 5. Machine Readability
+
+So many phps, pdfs, and no files. B-.
+
+#### The fucking links should work
+
+Only 72% of the actual dataset links work without errors, warnings or redirects. That's a B or a C+, by itself.
+
+#### True information content
+
+Well, so many maps and doubling the number of datasets because of French/English translations doesn't really increase the open information content. But that's fine, as long as you don't cite each one individually as open. Because we need to provide separate English and French datasets. Grade: B.
+
+## Conclusion: Open Canada Grade 
+
+Overall, I give `r emo::ji('canada')` a C+. Which is not a failure. It's a process that I hope we can work on, especially consolidating the data access into the API directly, instead of relying on outdated links to sites that don't exist. But the coordination required across these 100s of government departments is difficult enough to manage the metadata already.
+
+To see the data for yourself, either run this code or check the github links to [https://github.com/tweed1e/weblog/tree/master/content/post/api_resources.zip](api_resources.zip) and [https://github.com/tweed1e/weblog/tree/master/content/post/api_test_results.zip](api_test_results.zip).
+
+## Endnotes, next steps
+
+And this is before I even get to the datasets themselves! CANSIM is famous (to me) for not having consistent industry and geographic classifications. For instance, one dataset will list industries as "Manufacturing [31-33]", and another "Man.", and yet another will only have numbers "31-33". Let alone the province name vs. number problems ("NFLD" vs. "Newfoundland" vs. "Newfoundland and Labrador" vs. "10"). That's a project for another time.
