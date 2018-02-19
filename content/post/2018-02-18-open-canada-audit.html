@@ -760,9 +760,9 @@ api_test_results &lt;- api_test_urls %&gt;%
     TRUE ~ &quot;Other&quot;
   ))</code></pre>
 <p>^^ We’ve saved errors, warnings, status codes, and redirected URLs. Let’s go.</p>
-<div id="subtests-errors-warnings-etc." class="section level3">
-<h3>Subtests, errors, warnings, etc.</h3>
-<p>Write stuff.</p>
+<div id="count-errors-warnings-redirects-and-status-codes" class="section level3">
+<h3>Count errors, warnings, redirects, and status codes</h3>
+<p>First, count the number and types of errors:</p>
 <pre class="r"><code>api_test_results &lt;- read_csv(&quot;api_test_results.zip&quot;)
 
 api_test_results %&gt;%
@@ -1343,6 +1343,7 @@ TRUE
 <div id="conclusion-open-canada-grade" class="section level2">
 <h2>Conclusion: Open Canada Grade</h2>
 <p>Overall, I give 🇨🇦 a C+. Which is not a failure. It’s a process that I hope we can work on, especially consolidating the data access into the API directly, instead of relying on outdated links to sites that don’t exist. But the coordination required across these 100s of government departments is difficult enough to manage the metadata already.</p>
+<p>Of course one could improve the grade by just deleting all the datasets with problems. That’s why a real audit is important, to make sure Canada’s open data is covering everything it needs to cover; here, I check that what’s there works, but I don’t check anything that should be there that’s not.</p>
 <p>To see the data for yourself, either run this code or check the github links to <a href="api_resources.zip">https://github.com/tweed1e/weblog/tree/master/content/post/api_resources.zip</a> and <a href="api_test_results.zip">https://github.com/tweed1e/weblog/tree/master/content/post/api_test_results.zip</a>.</p>
 </div>
 <div id="endnotes-next-steps" class="section level2">

@@ -292,9 +292,10 @@ api_test_results <- api_test_urls %>%
 
 ^^ We've saved errors, warnings, status codes, and redirected URLs. Let's go.
 
-### Subtests, errors, warnings, etc.
+### Count errors, warnings, redirects, and status codes
 
-Write stuff.
+First, count the number and types of errors:
+
 ``` {r, eval = TRUE}
 api_test_results <- read_csv("api_test_results.zip")
 
@@ -406,6 +407,8 @@ Well, so many maps and doubling the number of datasets because of French/English
 ## Conclusion: Open Canada Grade 
 
 Overall, I give `r emo::ji('canada')` a C+. Which is not a failure. It's a process that I hope we can work on, especially consolidating the data access into the API directly, instead of relying on outdated links to sites that don't exist. But the coordination required across these 100s of government departments is difficult enough to manage the metadata already.
+
+Of course one could improve the grade by just deleting all the datasets with problems. That's why a real audit is important, to make sure Canada's open data is covering everything it needs to cover; here, I check that what's there works, but I don't check anything that should be there that's not.
 
 To see the data for yourself, either run this code or check the github links to [https://github.com/tweed1e/weblog/tree/master/content/post/api_resources.zip](api_resources.zip) and [https://github.com/tweed1e/weblog/tree/master/content/post/api_test_results.zip](api_test_results.zip).
 
