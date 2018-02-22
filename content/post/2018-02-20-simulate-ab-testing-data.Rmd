@@ -7,7 +7,6 @@ categories: ["r", "stats", "ab testing"]
 tags: ["r", "stats", "ab testing", "data science interview", "dataset"]
 description: ''
 image: "https://jesse.tw/images/circle-arrows.png"
-draft: TRUE
 ---
 
 ```{r setup, include=FALSE}
