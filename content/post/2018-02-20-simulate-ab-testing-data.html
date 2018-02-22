@@ -13,8 +13,8 @@ image: "https://jesse.tw/images/circle-arrows.png"
 
 <div id="simulating-data-is-super-useful-for-testing-methods-and-data-science-interview-prep" class="section level2">
 <h2>Simulating data is super useful for testing methods and data science interview prep</h2>
-<p>I find the most useful method to study statistics is simulation. If you’re picking up a method for the first time, (e.g., from the <a href="https://www.udacity.com/course/ab-testing--ud257">Udacity AB testing course</a>) it’s too easy to convince yourself you know what’s going on without actually doing the math or programming. For example, when I see binary treatments and outcomes, I wonder “would I get the same answer if I do binomial proportion test vs. logistic regression?” You don’t have to guess (or derive the answer analytically)!</p>
-<p>Just simulate it! If you want to practice a method, make a dataset with the desired treatment effect and other characteristics, simulate it, and see if your method gets the right answer back. The tough part with real data and real experiments (and data science interview problems) is that you usually don’t know the real answer, you just try to implement it and guess if the answer makes sense.</p>
+<p>I find the simulation is a great way to study statistics. If you’re picking up a method for the first time, (e.g., from the <a href="https://www.udacity.com/course/ab-testing--ud257">Udacity AB testing course</a>) it’s too easy to convince yourself you know what’s going on without actually doing the math or programming. For example, when I see binary treatments and outcomes, I wonder “would I get the same answer if I do binomial proportion test vs. logistic regression?” You don’t have to guess (or derive the answer analytically)!</p>
+<p>Just simulate it! If you want to practice a method, make a dataset with the desired treatment effect and other characteristics, simulate it, and see if your method gets the right answer back. The tough part with real data and real experiments (and data science interview problems) is that you won’t know the real answer, you just try to implement a method that makes sense and hope you get it right.</p>
 <p>There are a million different experiments you can run and a million datasets that represent those experiments, but I’ll try to outline some easy ones to get started.</p>
 <div id="basic-binary-treatment-d-continuous-outcome-y-with-error-e" class="section level3">
 <h3>Basic: binary treatment (D), continuous outcome (y) with error (e)</h3>
@@ -134,15 +134,15 @@ events_df &lt;- df %&gt;%
     select(id, session = value, treatment, click) # re-organize
 
 events_df %&gt;% print(n = 5)
-## # A tibble: 5,120 x 4
+## # A tibble: 4,953 x 4
 ##   id                               session             treatment click
 ##   &lt;chr&gt;                            &lt;dttm&gt;                  &lt;int&gt; &lt;int&gt;
-## 1 42171b71106f1957827f0b2452a74dc9 2018-01-05 00:53:17         0     0
-## 2 42171b71106f1957827f0b2452a74dc9 2018-02-09 09:20:50         0     0
-## 3 42171b71106f1957827f0b2452a74dc9 2018-02-05 01:52:08         0     0
-## 4 42171b71106f1957827f0b2452a74dc9 2018-01-08 03:03:39         0     1
-## 5 2834e53a55f01c4b18ef398f0d0ef4fe 2018-02-04 20:52:30         0     1
-## # ... with 5,115 more rows</code></pre>
+## 1 42171b71106f1957827f0b2452a74dc9 2018-01-03 00:27:32         1     1
+## 2 42171b71106f1957827f0b2452a74dc9 2018-02-03 10:20:29         1     0
+## 3 42171b71106f1957827f0b2452a74dc9 2018-01-25 18:48:07         1     1
+## 4 42171b71106f1957827f0b2452a74dc9 2018-01-20 20:34:35         1     1
+## 5 2834e53a55f01c4b18ef398f0d0ef4fe 2018-02-11 09:37:22         1     0
+## # ... with 4,948 more rows</code></pre>
 <p>What if you assigned treatment to sessions instead of to users (see <a href="https://towardsdatascience.com/the-second-ghost-of-experimentation-the-fallacy-of-session-based-metrics-fb65006d30ff">this Skyscanner post</a> for an overview of the problems you’re in for)?</p>
 <pre class="r"><code>events_df &lt;- events_df %&gt;% 
   mutate(treatment = rbinom(length(treatment), 1, 0.5),
@@ -150,23 +150,23 @@ events_df %&gt;% print(n = 5)
 <p>What’s the difference between these two datasets?</p>
 <pre class="r"><code># with user ids
 events_df %&gt;% print(n = 3)
-## # A tibble: 5,120 x 4
+## # A tibble: 4,953 x 4
 ##   id                               session             treatment click
 ##   &lt;chr&gt;                            &lt;dttm&gt;                  &lt;int&gt; &lt;int&gt;
-## 1 42171b71106f1957827f0b2452a74dc9 2018-01-05 00:53:17         1     1
-## 2 42171b71106f1957827f0b2452a74dc9 2018-02-09 09:20:50         1     0
-## 3 42171b71106f1957827f0b2452a74dc9 2018-02-05 01:52:08         1     1
-## # ... with 5,117 more rows
+## 1 42171b71106f1957827f0b2452a74dc9 2018-01-03 00:27:32         0     0
+## 2 42171b71106f1957827f0b2452a74dc9 2018-02-03 10:20:29         1     0
+## 3 42171b71106f1957827f0b2452a74dc9 2018-01-25 18:48:07         0     1
+## # ... with 4,950 more rows
 
 # session id only
 events_df %&gt;% select(-id) %&gt;% print(n = 3)
-## # A tibble: 5,120 x 3
+## # A tibble: 4,953 x 3
 ##   session             treatment click
 ##   &lt;dttm&gt;                  &lt;int&gt; &lt;int&gt;
-## 1 2018-01-05 00:53:17         1     1
-## 2 2018-02-09 09:20:50         1     0
-## 3 2018-02-05 01:52:08         1     1
-## # ... with 5,117 more rows</code></pre>
+## 1 2018-01-03 00:27:32         0     0
+## 2 2018-02-03 10:20:29         1     0
+## 3 2018-01-25 18:48:07         0     1
+## # ... with 4,950 more rows</code></pre>
 <p>In the first case, even though you randomized over sessions instead of users, at least you have the user ids in the first dataset and you might be able to correct for within-user session dependence. If you don’t have the users, you might be in trouble.</p>
 </div>
 </div>

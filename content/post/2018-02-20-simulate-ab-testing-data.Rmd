@@ -18,9 +18,9 @@ knitr::opts_chunk$set(collapse = TRUE,
 
 ## Simulating data is super useful for testing methods and data science interview prep
 
-I find the most useful method to study statistics is simulation. If you're picking up a method for the first time, (e.g., from the [Udacity AB testing course](https://www.udacity.com/course/ab-testing--ud257)) it's too easy to convince yourself you know what's going on without actually doing the math or programming. For example, when I see binary treatments and outcomes, I wonder "would I get the same answer if I do binomial proportion test vs. logistic regression?" You don't have to guess (or derive the answer analytically)!
+I find the simulation is a great way to study statistics. If you're picking up a method for the first time, (e.g., from the [Udacity AB testing course](https://www.udacity.com/course/ab-testing--ud257)) it's too easy to convince yourself you know what's going on without actually doing the math or programming. For example, when I see binary treatments and outcomes, I wonder "would I get the same answer if I do binomial proportion test vs. logistic regression?" You don't have to guess (or derive the answer analytically)!
 
-Just simulate it! If you want to practice a method, make a dataset with the desired treatment effect and other characteristics, simulate it, and see if your method gets the right answer back. The tough part with real data and real experiments (and data science interview problems) is that you usually don't know the real answer, you just try to implement it and guess if the answer makes sense.
+Just simulate it! If you want to practice a method, make a dataset with the desired treatment effect and other characteristics, simulate it, and see if your method gets the right answer back. The tough part with real data and real experiments (and data science interview problems) is that you won't know the real answer, you just try to implement a method that makes sense and hope you get it right.
 
 There are a million different experiments you can run and a million datasets that represent those experiments, but I'll try to outline some easy ones to get started.
 
