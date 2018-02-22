@@ -50,7 +50,9 @@ create_data <- function(N, beta, p = 0.5, sigma_x = 1, sigma_e = 1) {
   tibble(treatment = rbinom(N, 1, p),
          covariate = rnorm(N, 0, sigma_x),
          error = rnorm(N, 0, sigma_e),
-         outcome = as.integer(pnorm(beta * treatment - covariate + error) >= 0.5))
+         # although the errors in logit are logistic, not normal
+         # so I should be using rlogis instead of rnorm ^^^^
+         outcome = as.integer(beta * treatment + covariate + error > 0))
 }
 
 # Create a dataset of parameters,

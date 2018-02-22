@@ -40,7 +40,9 @@ create_data &lt;- function(N, beta, p = 0.5, sigma_x = 1, sigma_e = 1) {
   tibble(treatment = rbinom(N, 1, p),
          covariate = rnorm(N, 0, sigma_x),
          error = rnorm(N, 0, sigma_e),
-         outcome = as.integer(pnorm(beta * treatment - covariate + error) &gt;= 0.5))
+         # although the errors in logit are logistic, not normal
+         # so I should be using rlogis instead of rnorm ^^^^
+         outcome = as.integer(beta * treatment + covariate + error &gt; 0))
 }
 
 # Create a dataset of parameters,
@@ -96,16 +98,16 @@ dfs_estimates
 ## # A tibble: 2,000 x 10
 ##    id         N  beta true_coefficient model    term    estimate std.error
 ##    &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt;            &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt;     &lt;dbl&gt;
-##  1 1     10000. 0.100            0.160 base     treatm…   0.152     0.0401
-##  2 1     10000. 0.100            0.160 covaria… treatm…   0.183     0.0492
-##  3 2     10000. 0.100            0.160 base     treatm…   0.177     0.0401
-##  4 2     10000. 0.100            0.160 covaria… treatm…   0.226     0.0495
-##  5 3     10000. 0.100            0.160 base     treatm…   0.0327    0.0400
-##  6 3     10000. 0.100            0.160 covaria… treatm…   0.0625    0.0491
-##  7 4     10000. 0.100            0.160 base     treatm…   0.0851    0.0400
-##  8 4     10000. 0.100            0.160 covaria… treatm…   0.147     0.0490
-##  9 5     10000. 0.100            0.160 base     treatm…   0.0398    0.0400
-## 10 5     10000. 0.100            0.160 covaria… treatm…   0.0964    0.0492
+##  1 1     10000. 0.100            0.160 base     treatm…   0.0946    0.0400
+##  2 1     10000. 0.100            0.160 covaria… treatm…   0.130     0.0489
+##  3 2     10000. 0.100            0.160 base     treatm…   0.108     0.0400
+##  4 2     10000. 0.100            0.160 covaria… treatm…   0.196     0.0492
+##  5 3     10000. 0.100            0.160 base     treatm…   0.138     0.0401
+##  6 3     10000. 0.100            0.160 covaria… treatm…   0.225     0.0495
+##  7 4     10000. 0.100            0.160 base     treatm…   0.102     0.0400
+##  8 4     10000. 0.100            0.160 covaria… treatm…   0.147     0.0496
+##  9 5     10000. 0.100            0.160 base     treatm…   0.128     0.0401
+## 10 5     10000. 0.100            0.160 covaria… treatm…   0.188     0.0489
 ## # ... with 1,990 more rows, and 2 more variables: statistic &lt;dbl&gt;,
 ## #   p.value &lt;dbl&gt;</code></pre>
 <p>Done and done.</p>
