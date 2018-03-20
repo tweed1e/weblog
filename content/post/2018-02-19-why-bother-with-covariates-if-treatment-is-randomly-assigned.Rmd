@@ -28,6 +28,7 @@ Economists spend their lives trying to get observational data to behave like the
 
 The first thing economists learn is that you can drop any covariate that is uncorrelated with **either** the treatment variable **or** the outcome variable and still get a [*consistent* estimate](https://en.wikipedia.org/wiki/Consistent_estimator) of the treatment effect. But if you like, you can include a covariate that's uncorrelated with the treatment but correlated with the outcome to reduce the coefficient's standard error by reducing the estimate of the standard error of the residuals (the other part of the coefficient's standard error shouldn't be affected in large samples because the treatment and covariates are uncorrelated). So the CUPED strategy seems pretty obvious to an economist, but I need the practice so I thought I'd look at it anyway. Does it really work that well? Why?
 
+[Whoops! The answer really is that it reduces variance in the outcomes, the other stuff I find is really just confusing marginal and conditional effects. At first I thought was the point, the econometrician doesn't know the true model, so doesn't know to compare the conditional and marginal effects, but I was wrong. Anyway, wait for another post on that!]
 
 ## R setup and data
 

@@ -20,6 +20,7 @@ image: "https://jesse.tw/images/circle-arrows.png"
 </blockquote>
 <p>Economists spend their lives trying to get observational data to behave like they randomly assigned treatments. Usually that involves adding covariates until you get an answer you like, or using increasingly complicated methods (OLS, difference-in-difference, fixed effects, IVs, regression discontinuities, dynamic panels, synthetic controls, a million different standard error estimators, and so on). <em>But A/B testing starts with random assignment! The hard work is already done!</em> But I guess data science has slightly different issues, so let’s take a look.</p>
 <p>The first thing economists learn is that you can drop any covariate that is uncorrelated with <strong>either</strong> the treatment variable <strong>or</strong> the outcome variable and still get a <a href="https://en.wikipedia.org/wiki/Consistent_estimator"><em>consistent</em> estimate</a> of the treatment effect. But if you like, you can include a covariate that’s uncorrelated with the treatment but correlated with the outcome to reduce the coefficient’s standard error by reducing the estimate of the standard error of the residuals (the other part of the coefficient’s standard error shouldn’t be affected in large samples because the treatment and covariates are uncorrelated). So the CUPED strategy seems pretty obvious to an economist, but I need the practice so I thought I’d look at it anyway. Does it really work that well? Why?</p>
+<p>[Whoops! The answer really is that it reduces variance in the outcomes, the other stuff I find is really just confusing marginal and conditional effects. At first I thought was the point, the econometrician doesn’t know the true model, so doesn’t know to compare the conditional and marginal effects, but I was wrong. Anyway, wait for another post on that!]</p>
 </div>
 <div id="r-setup-and-data" class="section level2">
 <h2>R setup and data</h2>
@@ -98,16 +99,16 @@ dfs_estimates
 ## # A tibble: 2,000 x 10
 ##    id         N  beta true_coefficient model    term    estimate std.error
 ##    &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt;            &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt;     &lt;dbl&gt;
-##  1 1     10000. 0.100            0.160 base     treatm…   0.0946    0.0400
-##  2 1     10000. 0.100            0.160 covaria… treatm…   0.130     0.0489
-##  3 2     10000. 0.100            0.160 base     treatm…   0.108     0.0400
-##  4 2     10000. 0.100            0.160 covaria… treatm…   0.196     0.0492
-##  5 3     10000. 0.100            0.160 base     treatm…   0.138     0.0401
-##  6 3     10000. 0.100            0.160 covaria… treatm…   0.225     0.0495
-##  7 4     10000. 0.100            0.160 base     treatm…   0.102     0.0400
-##  8 4     10000. 0.100            0.160 covaria… treatm…   0.147     0.0496
-##  9 5     10000. 0.100            0.160 base     treatm…   0.128     0.0401
-## 10 5     10000. 0.100            0.160 covaria… treatm…   0.188     0.0489
+##  1 1     10000. 0.100            0.160 base     treatm…   0.0420    0.0400
+##  2 1     10000. 0.100            0.160 covaria… treatm…   0.105     0.0493
+##  3 2     10000. 0.100            0.160 base     treatm…   0.0663    0.0400
+##  4 2     10000. 0.100            0.160 covaria… treatm…   0.149     0.0496
+##  5 3     10000. 0.100            0.160 base     treatm…   0.115     0.0400
+##  6 3     10000. 0.100            0.160 covaria… treatm…   0.204     0.0495
+##  7 4     10000. 0.100            0.160 base     treatm…   0.178     0.0400
+##  8 4     10000. 0.100            0.160 covaria… treatm…   0.207     0.0491
+##  9 5     10000. 0.100            0.160 base     treatm…   0.159     0.0400
+## 10 5     10000. 0.100            0.160 covaria… treatm…   0.190     0.0493
 ## # ... with 1,990 more rows, and 2 more variables: statistic &lt;dbl&gt;,
 ## #   p.value &lt;dbl&gt;</code></pre>
 <p>Done and done.</p>
