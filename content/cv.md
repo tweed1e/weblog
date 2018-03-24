@@ -24,6 +24,8 @@ PhD, Economics --- University of Calgary, 2018 (expected)
 
 ### Working Papers :notebook:
 
+0. "[Looking for power-laws in all the wrong places: estimating firm size distribution tails across countries and datasets](files/tweedle-powerlaws.pdf)." Work in progress.
 1. "[The Microfoundations of Aggregate Volatility: Productivity or Network Asymmetry?](/files/tweedle-network-volatility.pdf)" (Submitted.)
 2. "[Going the Distance: Estimating the Effect of Provincial Borders on Trade when Geography (and Everything Else) Matters](/files/tweedle-trade-barriers-2016.pdf)", with Robert Bemrose and Mark Brown. (Submitted.)
-3. "[Firm Networks, Borders and Regional Economic Integration](/files/tweedle-firm-networks.pdf)", with W. Mark Brown and Afshan Dar-Brodeur. (R&R.)
+3. "[Firm Networks, Borders and Regional Economic Integration](/files/tweedle-firm-networks.pdf)", with Mark Brown and Afshan Dar-Brodeur. (R&R.)
+4. "Specialised vs. General Human Capital and Firm Productivity: Evidence from Canadian Matched Employer-Employee Data", with Margaret Leighton. Work in progress.
