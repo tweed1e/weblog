@@ -157,13 +157,13 @@ han_df %&gt;% print(n = 5)
 han_df &lt;- han_df %&gt;% mutate(time = with_tz(time, &quot;America/Toronto&quot;))
 han_df %&gt;% sample_n(5) # an easy way to look at a random sample of observations instead of just the first 10
 ## # A tibble: 5 x 11
-##   time                h1_en  h2_en  h3_en who_en   politician_id wordcount
-##   &lt;dttm&gt;              &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;            &lt;int&gt;     &lt;int&gt;
-## 1 2017-03-09 17:10:00 &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  The Cha…          9556         5
-## 2 1998-11-30 15:00:00 Oral … Prese… &lt;NA&gt;  The Spe…            NA        23
-## 3 2011-11-14 17:00:00 &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  Mr. Dar…           157       100
-## 4 2007-06-19 10:00:00 &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  Hon. Mi…            64       691
-## 5 2010-06-01 13:30:00 &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  The Cha…           424         7
+##   time                h1_en h2_en h3_en who_en     politician_id wordcount
+##   &lt;dttm&gt;              &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;              &lt;int&gt;     &lt;int&gt;
+## 1 2017-03-08 16:15:00 &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  Ms. Jenny…          9899         3
+## 2 2012-11-06 09:45:00 &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  Mr. Kevin…            NA       117
+## 3 2009-12-07 16:35:00 &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  Mr. Antho…            NA        21
+## 4 2007-12-11 16:15:00 &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  The Chair             91         2
+## 5 2013-11-06 15:55:00 &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  Mr. Jacqu…           428        14
 ## # ... with 4 more variables: who_hocid &lt;chr&gt;, who_context_en &lt;chr&gt;,
 ## #   name &lt;chr&gt;, gender &lt;chr&gt;</code></pre>
 <p>Ok, now we’re getting somewhere. I want to check two things: (1) what does the time distribution look like? and (2) can we get the gender of the MPs from names? We got genders from the politician database, but there are some sanity checks we’ll need. Leave that for later.</p>
@@ -188,11 +188,11 @@ words_gender %&gt;% select(who_en, gender, gender_x) %&gt;% sample_n(5)
 ## # A tibble: 5 x 3
 ##   who_en                                                   gender gender_x
 ##   &lt;chr&gt;                                                    &lt;chr&gt;  &lt;chr&gt;   
-## 1 Hon. Lisa Raitt (Minister of Natural Resources, CPC)     F      &quot;&quot;      
-## 2 The Chair                                                M      &quot;&quot;      
-## 3 Mr. Dean Del Mastro (Parliamentary Secretary to the Pri… M      M       
-## 4 Mr. Luc Berthold                                         M      M       
-## 5 Mr. William Amos                                         M      M</code></pre>
+## 1 Mr. Gerald Keddy                                         M      M       
+## 2 The Assistant Deputy Speaker (Mr. Anthony Rota)          M      M       
+## 3 Right Hon. Jean Chrétien (Prime Minister, Lib.)          M      &quot;&quot;      
+## 4 The Chair                                                M      &quot;&quot;      
+## 5 Hon. Robert Thibault (Minister of Fisheries and Oceans,… M      &quot;&quot;</code></pre>
 Ok, that’s not bad; now what are the overall statistics?
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -233,7 +233,7 @@ M
 </tr>
 </tbody>
 </table>
-<p>Not great. Does it change over time? We know 2015 was a record breaking election for female candidates; on the other hand, the previous record was 1993. So in between: 🤷🏿‍♀️.</p>
+<p>Not great. Does it change over time? We know 2015 was a record breaking election for female candidates; on the other hand, the previous record was 1993. So in between: 🤷🏾.</p>
 <p><img src="/post/2018-02-14-parliament-gender_files/figure-html/unnamed-chunk-10-1.png" width="768" /></p>
 <p>Whoops. There’s an obvious break in the series for Count—so something happened to the data collection or the structure of the hansard (it’s less likely that parliament itself changed significantly at that time). On the plus side, women get more words in Parliament over time!</p>
 </div>

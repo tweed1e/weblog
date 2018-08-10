@@ -134,15 +134,15 @@ events_df &lt;- df %&gt;%
     select(id, session = value, treatment, click) # re-organize
 
 events_df %&gt;% print(n = 5)
-## # A tibble: 4,812 x 4
+## # A tibble: 4,916 x 4
 ##   id                               session             treatment click
 ##   &lt;chr&gt;                            &lt;dttm&gt;                  &lt;int&gt; &lt;int&gt;
-## 1 42171b71106f1957827f0b2452a74dc9 2018-03-01 23:38:39         0     0
-## 2 42171b71106f1957827f0b2452a74dc9 2018-07-26 11:34:38         0     0
-## 3 42171b71106f1957827f0b2452a74dc9 2018-07-16 00:21:23         0     1
-## 4 42171b71106f1957827f0b2452a74dc9 2018-06-05 04:31:04         0     0
-## 5 42171b71106f1957827f0b2452a74dc9 2018-05-31 02:25:46         0     0
-## # ... with 4,807 more rows</code></pre>
+## 1 42171b71106f1957827f0b2452a74dc9 2018-04-11 02:01:11         0     0
+## 2 42171b71106f1957827f0b2452a74dc9 2018-05-25 17:08:07         0     0
+## 3 42171b71106f1957827f0b2452a74dc9 2018-01-04 04:02:43         0     0
+## 4 42171b71106f1957827f0b2452a74dc9 2018-07-29 10:10:58         0     0
+## 5 42171b71106f1957827f0b2452a74dc9 2018-03-06 23:31:18         0     1
+## # ... with 4,911 more rows</code></pre>
 <p>What if you assigned treatment to sessions instead of to users (see <a href="https://towardsdatascience.com/the-second-ghost-of-experimentation-the-fallacy-of-session-based-metrics-fb65006d30ff">this Skyscanner post</a> for an overview of the problems you’re in for)?</p>
 <pre class="r"><code>events_df &lt;- events_df %&gt;% 
   mutate(treatment = rbinom(length(treatment), 1, 0.5),
@@ -150,23 +150,23 @@ events_df %&gt;% print(n = 5)
 <p>What’s the difference between these two datasets?</p>
 <pre class="r"><code># with user ids
 events_df %&gt;% print(n = 3)
-## # A tibble: 4,812 x 4
+## # A tibble: 4,916 x 4
 ##   id                               session             treatment click
 ##   &lt;chr&gt;                            &lt;dttm&gt;                  &lt;int&gt; &lt;int&gt;
-## 1 42171b71106f1957827f0b2452a74dc9 2018-03-01 23:38:39         0     0
-## 2 42171b71106f1957827f0b2452a74dc9 2018-07-26 11:34:38         0     1
-## 3 42171b71106f1957827f0b2452a74dc9 2018-07-16 00:21:23         0     0
-## # ... with 4,809 more rows
+## 1 42171b71106f1957827f0b2452a74dc9 2018-04-11 02:01:11         0     0
+## 2 42171b71106f1957827f0b2452a74dc9 2018-05-25 17:08:07         0     0
+## 3 42171b71106f1957827f0b2452a74dc9 2018-01-04 04:02:43         0     1
+## # ... with 4,913 more rows
 
 # session id only
 events_df %&gt;% select(-id) %&gt;% print(n = 3)
-## # A tibble: 4,812 x 3
+## # A tibble: 4,916 x 3
 ##   session             treatment click
 ##   &lt;dttm&gt;                  &lt;int&gt; &lt;int&gt;
-## 1 2018-03-01 23:38:39         0     0
-## 2 2018-07-26 11:34:38         0     1
-## 3 2018-07-16 00:21:23         0     0
-## # ... with 4,809 more rows</code></pre>
+## 1 2018-04-11 02:01:11         0     0
+## 2 2018-05-25 17:08:07         0     0
+## 3 2018-01-04 04:02:43         0     1
+## # ... with 4,913 more rows</code></pre>
 <p>In the first case, even though you randomized over sessions instead of users, at least you have the user ids in the first dataset and you might be able to correct for within-user session dependence. If you don’t have the users, you might be in trouble.</p>
 </div>
 </div>
