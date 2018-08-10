@@ -38,7 +38,7 @@ safely(http_error)(&quot;https://boycott.google.ca&quot;)$error
 <pre class="r"><code>safely(HEAD)(&quot;ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip&quot;)
 ## $result
 ## Response [ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip]
-##   Date: 2018-02-17 16:45
+##   Date: 2018-08-10 15:12
 ##   Status: 350
 ##   Content-Type: &lt;unknown&gt;
 ##   Size: 91 B
@@ -49,7 +49,7 @@ safely(http_error)(&quot;https://boycott.google.ca&quot;)$error
 quietly(HEAD)(&quot;ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip&quot;)
 ## $result
 ## Response [ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_WEST_3/FOX_LAKE_WEST_3_SHP.zip]
-##   Date: 2018-02-17 16:45
+##   Date: 2018-08-10 15:12
 ##   Status: 350
 ##   Content-Type: &lt;unknown&gt;
 ##   Size: 91 B
@@ -60,7 +60,7 @@ quietly(HEAD)(&quot;ftp://ftp.nrcan.gc.ca/ess/sgb_pub/sgb_datasets/mb/FOX_LAKE_W
 ## 
 ## $warnings
 ## [1] &quot;NAs introduced by coercion to integer range&quot;                              
-## [2] &quot;Failed to parse headers:\n213 97668\n350 Restart position accepted (0).\n&quot;
+## [2] &quot;Failed to parse headers:\n213 97639\n350 Restart position accepted (0).\n&quot;
 ## 
 ## $messages
 ## character(0)</code></pre>
@@ -99,7 +99,7 @@ quietly_safely_head(&quot;http://www.acdi-cida.gc.ca&quot;)
 ## NULL
 ## 
 ## $result$error
-## &lt;simpleError in curl::curl_fetch_memory(url, handle = handle): Timeout was reached: Operation timed out after 1005 milliseconds with 0 bytes received&gt;
+## &lt;simpleError in curl::curl_fetch_memory(url, handle = handle): Timeout was reached: Operation timed out after 1002 milliseconds with 0 bytes received&gt;
 ## 
 ## 
 ## $output
@@ -116,7 +116,7 @@ quietly_safely_head(&quot;http://www.acdi-cida.gc.ca&quot;)
 <p>Redirects are annoying; check the <code>status_code</code> from <code>HEAD</code> <a href="https://stackoverflow.com/questions/21680643/i-would-like-to-check-if-url-redirects-to-another-page-in-r/48842128#48842128">doesn’t return a redirect code (300)</a>, because it follows the redirect to the new page and returns the status of that page. Instead, the <code>HEAD</code> returns a result that includes the url it actually accessed, so just check if that is the same as the url you asked for:</p>
 <pre class="r"><code>HEAD(&quot;https://www.google.ca&quot;)
 ## Response [https://www.google.ca/]
-##   Date: 2018-02-17 21:45
+##   Date: 2018-08-10 19:12
 ##   Status: 200
 ##   Content-Type: text/html; charset=ISO-8859-1
 ## &lt;EMPTY BODY&gt;

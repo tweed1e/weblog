@@ -115,18 +115,18 @@ c &lt;- cv.glmnet(ep_mm, episodes$rating, penalty.factor = penalty.factor) %&gt;
 lasso &lt;- tibble(term = names(c), estimate = c)
 lasso
 ## # A tibble: 236 x 2
-##    term       estimate
-##    &lt;chr&gt;         &lt;dbl&gt;
-##  1 chandler1  0.118   
-##  2 joey1     -0.0471  
-##  3 monica1   -0.0345  
-##  4 phoebe1   -0.144   
-##  5 rachel1   -0.0432  
-##  6 ross1      0.199   
-##  7 season2    0.      
-##  8 season3   -0.000183
-##  9 season4    0.000654
-## 10 season5    0.0598  
+##    term      estimate
+##    &lt;chr&gt;        &lt;dbl&gt;
+##  1 chandler1   0.115 
+##  2 joey1      -0.0525
+##  3 monica1    -0.0387
+##  4 phoebe1    -0.152 
+##  5 rachel1    -0.0470
+##  6 ross1       0.192 
+##  7 season2     0.    
+##  8 season3     0.    
+##  9 season4     0.    
+## 10 season5     0.0565
 ## # ... with 226 more rows</code></pre>
 </div>
 <div id="do-post-selection-estimation" class="section level3">

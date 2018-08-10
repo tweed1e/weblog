@@ -15,7 +15,7 @@ Research Economist --- Statistics Canada, 2014--Current
 
 ### Education :school_satchel:
 
-PhD, Economics --- University of Calgary, 2018 (expected)
+PhD, Economics --- University of Calgary, 2018
 
 ### Publications :blue_book:
 
