@@ -106,7 +106,7 @@ titles %>% arrange(-rating) %>% head(5)
 'Embryos' is the ep where the winner of a quiz wins Monica and Rachel's apartment. So good. 'Everybody Finds Out': it's the one where Phoebe finds out about Monica/Chandler's relationship; great ep (other than the Phoebe line I always hated "my eyes! my eyes!"). 
 It's also a great example of common knowledge and rational agents in game theory.
 
-One problem with titles: "The One with the Embryos" gives no information other than a noun that is related to babies. `r emo::ji(':(')` No character names and no indication of why I like it.
+One problem with titles: "The One with the Embryos" gives no information other than a noun that is related to babies. `r emo::ji('frown')` No character names and no indication of why I like it.
 
 ``` {r}
 # The worst episodes

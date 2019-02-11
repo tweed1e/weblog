@@ -9,6 +9,7 @@ description: "Canada's open data portal gets a C+. Get ready for a million table
 image: "https://jesse.tw/images/circle-arrows.png"
 ---
 
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
 
 
 <div id="motivation" class="section level2">
@@ -437,12 +438,12 @@ Ministère des Finances Canada
   count(org_title_at_publication.en, org_title_at_publication.fr) %&gt;%
   filter(is.na(org_title_at_publication.en) | is.na(org_title_at_publication.fr))
 ## # A tibble: 4 x 3
-##   org_title_at_publication.en           org_title_at_publication.fr      n
-##   &lt;chr&gt;                                 &lt;chr&gt;                        &lt;int&gt;
-## 1 Environment and Climate Change Canada &lt;NA&gt;                             3
-## 2 National Energy Board                 &lt;NA&gt;                           178
-## 3 &lt;NA&gt;                                  Commission des libérations …    92
-## 4 &lt;NA&gt;                                  Conseil des arts du Canada       1</code></pre>
+##   org_title_at_publication.en   org_title_at_publication.fr               n
+##   &lt;chr&gt;                         &lt;chr&gt;                                 &lt;int&gt;
+## 1 Environment and Climate Chan… &lt;NA&gt;                                      3
+## 2 National Energy Board         &lt;NA&gt;                                    178
+## 3 &lt;NA&gt;                          Commission des libérations condition…    92
+## 4 &lt;NA&gt;                          Conseil des arts du Canada                1</code></pre>
 <p>Whoops, I guess a few of the organization titles were also a bit messed up.</p>
 </div>
 </div>
@@ -541,16 +542,16 @@ ttps
   select(hostname) %&gt;%
   filter(!grepl(&quot;(ca|fr|gov|net|com|org)$&quot;, x = hostname))
 ## # A tibble: 9 x 1
-##   hostname                                                                
-##   &lt;chr&gt;                                                                   
-## 1 Water-Qual-Eau-S-Saskatchewan-2000-present.csv                          
-## 2 Water-Qual-Eau-Yukon-2000-present.csv                                   
-## 3 2014_ACC_RapportstatistiqueLAI_Tableau2.5.2_Pagespertinentestraitéesetd…
-## 4 2013-2014_VAC_ATIStatisticalReport_AppendixA_Table1_Numberofinformalrel…
-## 5 2013-2014_VAC_ATIStatisticalReport_AppendixA_Table2_RequestswithLegalSe…
-## 6 2013-2014_VAC_ATIStatisticalReport_AppendixA_Table2_RequestswithLegalSe…
-## 7 8ed50921-bb46-404d-92fc-69b74a827238                                    
-## 8 205.193.86.89                                                           
+##   hostname                                                                 
+##   &lt;chr&gt;                                                                    
+## 1 Water-Qual-Eau-S-Saskatchewan-2000-present.csv                           
+## 2 Water-Qual-Eau-Yukon-2000-present.csv                                    
+## 3 2014_ACC_RapportstatistiqueLAI_Tableau2.5.2_Pagespertinentestraitéesetdi…
+## 4 2013-2014_VAC_ATIStatisticalReport_AppendixA_Table1_Numberofinformalrele…
+## 5 2013-2014_VAC_ATIStatisticalReport_AppendixA_Table2_RequestswithLegalSer…
+## 6 2013-2014_VAC_ATIStatisticalReport_AppendixA_Table2_RequestswithLegalSer…
+## 7 8ed50921-bb46-404d-92fc-69b74a827238                                     
+## 8 205.193.86.89                                                            
 ## 9 2015-07-01 -- 2015-07-04 Marine-marin.csv</code></pre>
 <p>Well, those are just wrong (except one is just an IP address, which is strange but it works). Also there are some non-Canadian hosts for some reason (I needed to filter hostnames for <code>.fr</code>, <code>.gov</code>, <code>.net</code>, etc.).</p>
 </div>
@@ -835,7 +836,7 @@ Could not resolve host
 </tr>
 </tbody>
 </table>
-<p>93.7% don’t have errors, but 6.2% timeout (they’re all from <a href="http://acdi-cida.gc.ca">acdi-cida.gc.ca</a>, which just doesn’t work). Come on. 6% of the datasets don’t work! And if you don’t set a timeout on your HEAD request, your R session hangs! 😡❗️.</p>
+<p>93.7% don’t have errors, but 6.2% timeout (they’re all from <a href="http://acdi-cida.gc.ca">acdi-cida.gc.ca</a>, which just doesn’t work). Come on. 6% of the datasets don’t work! And if you don’t set a timeout on your HEAD request, your R session hangs! 😡❗.</p>
 <pre class="r"><code>## status codes:
 # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 # https://en.wikipedia.org/wiki/List_of_FTP_server_return_codes
@@ -1079,8 +1080,8 @@ api_test_results %&gt;%
   distinct(resource_urls, head_url) %&gt;% glimpse()
 ## Observations: 1
 ## Variables: 2
-## $ resource_urls &lt;chr&gt; &quot;http://www20.statcan.gc.ca/tables-tableaux/cans...
-## $ head_url      &lt;chr&gt; &quot;http://www20.statcan.gc.ca/tables-tableaux/cans...</code></pre>
+## $ resource_urls &lt;chr&gt; &quot;http://www20.statcan.gc.ca/tables-tableaux/cansim…
+## $ head_url      &lt;chr&gt; &quot;http://www20.statcan.gc.ca/tables-tableaux/cansim…</code></pre>
 <p>Dang, the 300 status returns are really <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#3xx_Redirection">just redirects to a 404</a>, so I’m counting them as 404s later. Don’t give me that.</p>
 <pre class="r"><code># Clean data to make result tables
 api_test_results_table &lt;- api_test_results %&gt;%
@@ -1111,8 +1112,8 @@ api_test_results_table &lt;- api_test_results %&gt;%
 <tr>
 <th style="border-bottom:hidden" colspan="2">
 </th>
-<th style="text-align:center; border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;" colspan="3">
-<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
 Status code
 </div>
 </th>
@@ -1222,8 +1223,8 @@ TRUE
 <tr>
 <th style="border-bottom:hidden" colspan="2">
 </th>
-<th style="text-align:center; border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;" colspan="3">
-<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
 Status code
 </div>
 </th>

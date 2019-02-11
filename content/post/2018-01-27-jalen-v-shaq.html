@@ -18,21 +18,21 @@ babynames %&gt;%
   filter(name == &quot;Jalen&quot;) %&gt;% 
   group_by(name, year) %&gt;% 
   summarize(n = sum(n))
-## # A tibble: 31 x 3
+## # A tibble: 33 x 3
 ## # Groups:   name [?]
 ##    name   year     n
 ##    &lt;chr&gt; &lt;dbl&gt; &lt;int&gt;
-##  1 Jalen 1976.     5
-##  2 Jalen 1977.     5
-##  3 Jalen 1981.     5
-##  4 Jalen 1986.     5
-##  5 Jalen 1988.     5
-##  6 Jalen 1990.     5
-##  7 Jalen 1991.    15
-##  8 Jalen 1992.   642
-##  9 Jalen 1993.  1468
-## 10 Jalen 1994.  1770
-## # ... with 21 more rows</code></pre>
+##  1 Jalen  1976     5
+##  2 Jalen  1977     5
+##  3 Jalen  1981     5
+##  4 Jalen  1986     5
+##  5 Jalen  1988     5
+##  6 Jalen  1990     5
+##  7 Jalen  1991    15
+##  8 Jalen  1992   642
+##  9 Jalen  1993  1468
+## 10 Jalen  1994  1770
+## # … with 23 more rows</code></pre>
 <p>Hmm. Jalen was born in 1973 but it doesn’t show up until 1976. I’m guessing the <code>babynames</code> dataset is censored at 5 to preserve confidentiality or something. So he might’ve been the first! But unless his mother was promoting the name when he was 3, others invented ‘Jalen’ simultaneously.</p>
 <p>But you can definitely see ‘Jalen’ uptick when he hit the national stage. What does the trend look like? How does it compare to a similarly famous and unique name?</p>
 <pre class="r"><code>babynames %&gt;% 

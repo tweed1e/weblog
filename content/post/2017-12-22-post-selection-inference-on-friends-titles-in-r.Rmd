@@ -36,7 +36,7 @@ The problem: all we really have is titles, writers and directors. How do we use 
 
 ## Method
 
-So, once we create language dummy variables to try to control for episode characteristics that may affect ratings, we find ourselves with too many predictors. There are only `r nrow(titles)` episodes but we create way more language dummies `r emo::ji('think')`.
+So, once we create language dummy variables to try to control for episode characteristics that may affect ratings, we find ourselves with too many predictors. There are only `r nrow(titles)` episodes but we create way more language dummies `r emo::ji('surprise')`.
 
 This is a high-dimensional problem, with more explanatory variables than observations, `p>>n`. A few econometricians have proposed a post-selection estimator to solve these problems, which have a slightly different flavour than normal machine learning / prediction problems.
 

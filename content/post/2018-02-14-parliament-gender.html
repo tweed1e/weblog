@@ -9,6 +9,7 @@ description: 'A look at digital copies of Canadian parliamentary debates 1994--2
 image: "https://jesse.tw/images/circle-arrows.png"
 ---
 
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
 
 
 <p>(Preface: I’m 🇨🇦 but idk anything about parliament and dk what a hansard was before I started this. So if you see something wrong, get the <a href="https://github.com/tweed1e/weblog/blob/master/content/post/2018-02-14-parliament-gender.Rmd">code from github</a> and diy!)</p>
@@ -157,14 +158,14 @@ han_df %&gt;% print(n = 5)
 han_df &lt;- han_df %&gt;% mutate(time = with_tz(time, &quot;America/Toronto&quot;))
 han_df %&gt;% sample_n(5) # an easy way to look at a random sample of observations instead of just the first 10
 ## # A tibble: 5 x 11
-##   time                h1_en h2_en h3_en who_en     politician_id wordcount
-##   &lt;dttm&gt;              &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;              &lt;int&gt;     &lt;int&gt;
-## 1 2017-03-08 16:15:00 &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  Ms. Jenny…          9899         3
-## 2 2012-11-06 09:45:00 &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  Mr. Kevin…            NA       117
-## 3 2009-12-07 16:35:00 &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  Mr. Antho…            NA        21
-## 4 2007-12-11 16:15:00 &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  The Chair             91         2
-## 5 2013-11-06 15:55:00 &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  Mr. Jacqu…           428        14
-## # ... with 4 more variables: who_hocid &lt;chr&gt;, who_context_en &lt;chr&gt;,
+##   time                h1_en h2_en h3_en who_en politician_id wordcount
+##   &lt;dttm&gt;              &lt;chr&gt; &lt;chr&gt; &lt;lgl&gt; &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;
+## 1 2010-10-27 16:40:00 &lt;NA&gt;  &lt;NA&gt;  NA    Ms. J…            NA         1
+## 2 2007-11-15 09:20:00 &lt;NA&gt;  &lt;NA&gt;  NA    Mr. P…           308         6
+## 3 2011-11-01 12:50:00 &lt;NA&gt;  &lt;NA&gt;  NA    Mr. G…            NA        68
+## 4 2013-01-30 14:50:00 Oral… Agri… NA    Ms. R…          8479        88
+## 5 2014-05-01 09:30:00 &lt;NA&gt;  &lt;NA&gt;  NA    Mr. A…            NA       274
+## # … with 4 more variables: who_hocid &lt;lgl&gt;, who_context_en &lt;lgl&gt;,
 ## #   name &lt;chr&gt;, gender &lt;chr&gt;</code></pre>
 <p>Ok, now we’re getting somewhere. I want to check two things: (1) what does the time distribution look like? and (2) can we get the gender of the MPs from names? We got genders from the politician database, but there are some sanity checks we’ll need. Leave that for later.</p>
 <div id="cycles-of-activity" class="section level3">
@@ -186,13 +187,13 @@ han_df %&gt;% sample_n(5) # an easy way to look at a random sample of observatio
   filter(gender != &quot;&quot;)
 words_gender %&gt;% select(who_en, gender, gender_x) %&gt;% sample_n(5)
 ## # A tibble: 5 x 3
-##   who_en                                                   gender gender_x
-##   &lt;chr&gt;                                                    &lt;chr&gt;  &lt;chr&gt;   
-## 1 Mr. Gerald Keddy                                         M      M       
-## 2 The Assistant Deputy Speaker (Mr. Anthony Rota)          M      M       
-## 3 Right Hon. Jean Chrétien (Prime Minister, Lib.)          M      &quot;&quot;      
-## 4 The Chair                                                M      &quot;&quot;      
-## 5 Hon. Robert Thibault (Minister of Fisheries and Oceans,… M      &quot;&quot;</code></pre>
+##   who_en                                 gender gender_x
+##   &lt;chr&gt;                                  &lt;chr&gt;  &lt;chr&gt;   
+## 1 Mr. Fin Donnelly                       M      M       
+## 2 Mr. Adam Fanaki                        M      M       
+## 3 Mr. Ahmadshah Malgarai                 M      M       
+## 4 Mr. Scott Simms                        M      M       
+## 5 The Acting Speaker (Mr. Andrew Scheer) M      M</code></pre>
 Ok, that’s not bad; now what are the overall statistics?
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -233,7 +234,7 @@ M
 </tr>
 </tbody>
 </table>
-<p>Not great. Does it change over time? We know 2015 was a record breaking election for female candidates; on the other hand, the previous record was 1993. So in between: 🤷🏾.</p>
+<p>Not great. Does it change over time? We know 2015 was a record breaking election for female candidates; on the other hand, the previous record was 1993. So in between: 🤷.</p>
 <p><img src="/post/2018-02-14-parliament-gender_files/figure-html/unnamed-chunk-10-1.png" width="768" /></p>
 <p>Whoops. There’s an obvious break in the series for Count—so something happened to the data collection or the structure of the hansard (it’s less likely that parliament itself changed significantly at that time). On the plus side, women get more words in Parliament over time!</p>
 </div>
@@ -250,8 +251,8 @@ M
 <tr>
 <th style="border-bottom:hidden" colspan="1">
 </th>
-<th style="text-align:center; border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;" colspan="2">
-<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
 % female words
 </div>
 </th>

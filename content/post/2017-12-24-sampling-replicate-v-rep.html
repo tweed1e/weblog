@@ -12,10 +12,10 @@ description: 'A short post to describe repeatedly randomly generating objects.'
 
 <p>The problem: you want to generate a random collection of letters.</p>
 <pre class="r"><code>letters %&gt;% sample(size = 4) %&gt;% paste0(collapse = &quot;&quot;) 
-## [1] &quot;dlcz&quot;</code></pre>
+## [1] &quot;gajr&quot;</code></pre>
 <p>Great. Now do it 10 times.</p>
 <pre class="r"><code>letters %&gt;% sample(size = 4) %&gt;% paste0(collapse = &quot;&quot;) %&gt;% rep(8)
-## [1] &quot;rwuj&quot; &quot;rwuj&quot; &quot;rwuj&quot; &quot;rwuj&quot; &quot;rwuj&quot; &quot;rwuj&quot; &quot;rwuj&quot; &quot;rwuj&quot;</code></pre>
+## [1] &quot;nijp&quot; &quot;nijp&quot; &quot;nijp&quot; &quot;nijp&quot; &quot;nijp&quot; &quot;nijp&quot; &quot;nijp&quot; &quot;nijp&quot;</code></pre>
 <p>😖. Why am I like this. Ok, <code>rep</code> copies the object 8 times. It doesn’t draw 8 samples. So just write a function:</p>
 <pre class="r"><code>sample_letters &lt;- function(size = 4) {
   letters %&gt;% sample(size = size) %&gt;% paste0(collapse = &quot;&quot;)
@@ -25,21 +25,21 @@ rep_(sample_letters, 8) %&gt;% .$error %&gt;% .$message
 ## [1] &quot;attempt to replicate an object of type &#39;closure&#39;&quot;</code></pre>
 <p>This gd thing (although I learned a bit about <code>safely</code> here, 👍). It wants to repeat the function definition, not repeatedly run the function. Ok.</p>
 <pre class="r"><code>rep(sample_letters(), 8)
-## [1] &quot;vftc&quot; &quot;vftc&quot; &quot;vftc&quot; &quot;vftc&quot; &quot;vftc&quot; &quot;vftc&quot; &quot;vftc&quot; &quot;vftc&quot;</code></pre>
+## [1] &quot;tcuq&quot; &quot;tcuq&quot; &quot;tcuq&quot; &quot;tcuq&quot; &quot;tcuq&quot; &quot;tcuq&quot; &quot;tcuq&quot; &quot;tcuq&quot;</code></pre>
 <p>Gd-it. Same problem. It runs the function once, then repeats the object 8 times. Ok, surely if I use <code>lapply</code> (or <code>sapply</code> = simplify apply?), which is designed to run functions a million times, this will work</p>
 <pre class="r"><code>sapply(1:8, function(x) { sample_letters() }) 
-## [1] &quot;eyuh&quot; &quot;jqei&quot; &quot;qnpw&quot; &quot;owqn&quot; &quot;kymu&quot; &quot;cvmx&quot; &quot;vmfy&quot; &quot;krio&quot;</code></pre>
+## [1] &quot;mwht&quot; &quot;kijl&quot; &quot;svrc&quot; &quot;simu&quot; &quot;bghn&quot; &quot;awgo&quot; &quot;dazi&quot; &quot;rkez&quot;</code></pre>
 <p>Ugh, finally. But a pyrrhic victory. The code is ugly and horrible and requires a function argument that we throw away like plastic bottles in the ocean and those arguments will come back and kill us all.</p>
 <p>Ok, double-checking the documentation in <code>lapply</code>, there’s finally one to do what I want. But of course (to Hadley’s dismay, I’m sure), the syntax is halfway between <code>lapply</code> and <code>rep</code>, which makes it impossible to remember.</p>
 <pre class="r"><code>replicate(8, sample_letters())
-## [1] &quot;wivo&quot; &quot;ctrj&quot; &quot;itfz&quot; &quot;iyac&quot; &quot;sbhu&quot; &quot;ofju&quot; &quot;bdpn&quot; &quot;idmb&quot;</code></pre>
+## [1] &quot;apil&quot; &quot;ocli&quot; &quot;zsti&quot; &quot;bmlz&quot; &quot;vsxo&quot; &quot;qzfx&quot; &quot;tamy&quot; &quot;nagi&quot;</code></pre>
 <p>The <code>n</code> argument comes first like an <code>apply</code>, while in <code>rep</code> it comes second, but it’s called <code>replicate</code> and not <code>rapply</code>. On top of that, you can hack the regular <code>lapply</code> call to draw it randomly (as long as the size argument is in <code>sample_letters</code>), but now we’ve dropped the parentheses!</p>
 <pre class="r"><code>sapply(rep(4, 8), sample_letters)
-## [1] &quot;pwcl&quot; &quot;aqrg&quot; &quot;lmqo&quot; &quot;vrnh&quot; &quot;jfpy&quot; &quot;mzes&quot; &quot;omhe&quot; &quot;sfjw&quot;</code></pre>
+## [1] &quot;gnrv&quot; &quot;kxqj&quot; &quot;euiw&quot; &quot;xnli&quot; &quot;fdrn&quot; &quot;aequ&quot; &quot;tabc&quot; &quot;zwuc&quot;</code></pre>
 <p>If we do that with <code>replicate</code>, it replicates the function definition. 😡. These are the mental steps I go through everytime I want to randomly sample something (usually just for fake data and testing).</p>
 <div id="answer-for-now" class="section level2">
 <h2>Answer, for now</h2>
 <pre class="r"><code>replicate(8, sample_letters())
-## [1] &quot;micu&quot; &quot;avot&quot; &quot;tobx&quot; &quot;myfv&quot; &quot;oley&quot; &quot;nlbz&quot; &quot;zsyb&quot; &quot;iyht&quot;</code></pre>
+## [1] &quot;reav&quot; &quot;xtpn&quot; &quot;dncf&quot; &quot;kpnv&quot; &quot;qadt&quot; &quot;kyjh&quot; &quot;lpij&quot; &quot;shlt&quot;</code></pre>
 <p>To do: understand wtf it’s ok to repeat a function definition (like in <code>replicate</code> without parentheses) but not other times (like in <code>rep</code> without parentheses).</p>
 </div>

@@ -14,19 +14,19 @@ categories: ["r", "friends"]
 <pre class="r"><code>titles &lt;- werfriends::friends_episodes %&gt;% select(-director, -writers)
 titles
 ## # A tibble: 236 x 5
-##    season episode title                                   rating n_ratings
-##     &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                                    &lt;dbl&gt;     &lt;dbl&gt;
-##  1     1.      1. The One Where Monica Gets a Roommate      8.50     4317.
-##  2     1.      2. The One with the Sonogram at the End      8.20     3107.
-##  3     1.      3. The One with the Thumb                    8.30     2900.
-##  4     1.      4. The One with George Stephanopoulos        8.30     2810.
-##  5     1.      5. The One with the East German Laundry D…   8.60     2768.
-##  6     1.      6. The One with the Butt                     8.30     2695.
-##  7     1.      7. The One with the Blackout                 9.00     3516.
-##  8     1.      8. The One Where Nana Dies Twice             8.20     2594.
-##  9     1.      9. The One Where Underdog Gets Away          8.30     2516.
-## 10     1.     10. The One with the Monkey                   8.20     2544.
-## # ... with 226 more rows</code></pre>
+##    season episode title                                    rating n_ratings
+##     &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                                     &lt;dbl&gt;     &lt;dbl&gt;
+##  1      1       1 The One Where Monica Gets a Roommate        8.5      4317
+##  2      1       2 The One with the Sonogram at the End        8.2      3107
+##  3      1       3 The One with the Thumb                      8.3      2900
+##  4      1       4 The One with George Stephanopoulos          8.3      2810
+##  5      1       5 The One with the East German Laundry De…    8.6      2768
+##  6      1       6 The One with the Butt                       8.3      2695
+##  7      1       7 The One with the Blackout                   9        3516
+##  8      1       8 The One Where Nana Dies Twice               8.2      2594
+##  9      1       9 The One Where Underdog Gets Away            8.3      2516
+## 10      1      10 The One with the Monkey                     8.2      2544
+## # … with 226 more rows</code></pre>
 <p>Approach: instead of calculating word transition probabilities directly from the titles, we’re going to use the same approach to generate sentence structures, which will look like “The One Where [Noun] [Verb]”. Then, I’ll randomly select a noun from all the nouns in the set of titles, and randomly select a verb from all the verbs in the set of titles. That’ll give me “The One Where Ross Dies”. Perfect.</p>
 <pre class="r"><code>title_words &lt;- titles %&gt;% 
   unnest_tokens(word, title) %&gt;% # convert titles to words
@@ -51,10 +51,10 @@ parts_of_speech &lt;- read_tsv(&quot;SUBTLEX-US_frequency_list_with_PoS_informat
 ## Parsed with column specification:
 ## cols(
 ##   Word = col_character(),
-##   FREQcount = col_integer(),
-##   CDcount = col_integer(),
-##   FREQlow = col_integer(),
-##   Cdlow = col_integer(),
+##   FREQcount = col_double(),
+##   CDcount = col_double(),
+##   FREQlow = col_double(),
+##   Cdlow = col_double(),
 ##   SUBTLWF = col_double(),
 ##   Lg10WF = col_double(),
 ##   SUBTLCD = col_double(),
@@ -67,19 +67,19 @@ parts_of_speech &lt;- read_tsv(&quot;SUBTLEX-US_frequency_list_with_PoS_informat
 ## )
 parts_of_speech
 ## # A tibble: 74,286 x 14
-##    Word    FREQcount CDcount FREQlow Cdlow   SUBTLWF Lg10WF SUBTLCD Lg10CD
-##    &lt;chr&gt;       &lt;int&gt;   &lt;int&gt;   &lt;int&gt; &lt;int&gt;     &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;
-##  1 a         1041179    8382  976941  8380   2.04e⁺⁴  6.02  99.9     3.92 
-##  2 aa             87      70       6     5   1.71e⁺⁰  1.94   0.830   1.85 
-##  3 aaa            25      23       5     3   4.90e⁻¹  1.42   0.270   1.38 
-##  4 aah          2688     634      52    37   5.27e⁺¹  3.43   7.56    2.80 
-##  5 aahed           1       1       1     1   2.00e⁻²  0.301  0.0100  0.301
-##  6 aahing          2       2       2     2   4.00e⁻²  0.477  0.0200  0.477
-##  7 aahs            5       4       5     4   1.00e⁻¹  0.778  0.0500  0.699
-##  8 aal             1       1       1     1   2.00e⁻²  0.301  0.0100  0.301
-##  9 aardva…        21      12      14     8   4.10e⁻¹  1.34   0.140   1.11 
-## 10 aargh          33      26       2     1   6.50e⁻¹  1.53   0.310   1.43 
-## # ... with 74,276 more rows, and 5 more variables: Dom_PoS_SUBTLEX &lt;chr&gt;,
+##    Word  FREQcount CDcount FREQlow Cdlow SUBTLWF Lg10WF SUBTLCD Lg10CD
+##    &lt;chr&gt;     &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;
+##  1 a       1041179    8382  976941  8380 2.04e+4  6.02    99.9   3.92 
+##  2 aa           87      70       6     5 1.71e+0  1.94     0.83  1.85 
+##  3 aaa          25      23       5     3 4.90e-1  1.42     0.27  1.38 
+##  4 aah        2688     634      52    37 5.27e+1  3.43     7.56  2.80 
+##  5 aahed         1       1       1     1 2.00e-2  0.301    0.01  0.301
+##  6 aahi…         2       2       2     2 4.00e-2  0.477    0.02  0.477
+##  7 aahs          5       4       5     4 1.00e-1  0.778    0.05  0.699
+##  8 aal           1       1       1     1 2.00e-2  0.301    0.01  0.301
+##  9 aard…        21      12      14     8 4.10e-1  1.34     0.14  1.11 
+## 10 aargh        33      26       2     1 6.50e-1  1.53     0.31  1.43 
+## # … with 74,276 more rows, and 5 more variables: Dom_PoS_SUBTLEX &lt;chr&gt;,
 ## #   Freq_dom_PoS_SUBTLEX &lt;chr&gt;, Percentage_dom_PoS &lt;chr&gt;,
 ## #   All_PoS_SUBTLEX &lt;chr&gt;, All_freqs_SUBTLEX &lt;chr&gt;</code></pre>
 </div>
@@ -116,7 +116,7 @@ titles_pos %&gt;%
 ##  8 the one with Article Noun Noun Noun      5
 ##  9 the one with Name &#39;s Adjective Noun      5
 ## 10 the one in Name Noun Noun                4
-## # ... with 91 more rows</code></pre>
+## # … with 91 more rows</code></pre>
 <p>Now we have an idea of typical sentence/title structures. Now all we have to do is calculate the probability that a certain part of speech follows another, then randomly generate a new title structure, and then randomly sample from each part of speech to substitute into the new title structure.</p>
 <pre class="r"><code># find the transition probabilities from parts_of_speech to other
 # parts_of_speech based on the set of titles we have
@@ -147,7 +147,7 @@ pos_transitions
 ##  8 Adjective Name          1 0.0286
 ##  9 Adjective Noun         22 0.629 
 ## 10 Adjective Verb          5 0.143 
-## # ... with 109 more rows</code></pre>
+## # … with 109 more rows</code></pre>
 <p>This gives a tidy dataset of transition probabilities from one part of speech to another.</p>
 </div>
 <div id="final-step" class="section level2">
@@ -167,13 +167,13 @@ word_pos_freq %&gt;% arrange(-n)
 ##  2 one    Number        239 0.960 
 ##  3 with   Preposition   162 0.871 
 ##  4 where  Adverb         54 0.783 
-##  5 &#39;s     &#39;s             51 1.00  
+##  5 &#39;s     &#39;s             51 1     
 ##  6 rachel Noun           28 0.0940
 ##  7 ross   Name           24 0.270 
 ##  8 part   Noun           20 0.0671
 ##  9 joey   Name           16 0.180 
-## 10 all    Determiner     12 0.800 
-## # ... with 330 more rows</code></pre>
+## 10 all    Determiner     12 0.8   
+## # … with 330 more rows</code></pre>
 <p>With that, all we have to do is write a function that generates a title structure using parts of speech,</p>
 <pre class="r"><code># generate sentence structure
 generate_structure &lt;- function() {
@@ -221,17 +221,15 @@ generate_title &lt;- function() {
 <div id="now-make-a-pos-title-r" class="section level2">
 <h2>Now make a pos title, R!</h2>
 <pre class="r"><code>generate_title() 
-## [1] &quot;The One With A Baby&quot;</code></pre>
-<p>Dang, I hope these are good. But they’re generated when Netlify builds the site so 🤷‍♀️.</p>
+## [1] &quot;The One Where Proposal Twice To Sandwich&quot;</code></pre>
+<p>Dang, I hope these are good. But they’re generated when Netlify builds the site so 🤷‍♀.</p>
 <p>And five more, for fun:</p>
 <pre class="r"><code>replicate(5, generate_title())
-## [1] &quot;The One Where Princess&quot;                         
-## [2] &quot;The One Where Free Part&quot;                        
-## [3] &quot;The One With Ross&#39;s Jr With Phoebe Morning Race&quot;
-## [4] &quot;The One With The Rachel&quot;                        
-## [5] &quot;The One With The Race&quot;</code></pre>
+## [1] &quot;The One With The Wedding&quot;         &quot;The One With All 2&quot;              
+## [3] &quot;The One Where Mac&#39;s Laundry Part&quot; &quot;The One With The Jellyfish&quot;      
+## [5] &quot;The One After Chandler Thing&quot;</code></pre>
 <p>And one randomly generated header title:</p>
 </div>
-<div id="the-one-with-book" class="section level1">
-<h1>The One With Book</h1>
+<div id="the-one-with-all-the-ride-baby-speaks" class="section level1">
+<h1>The One With All The Ride Baby Speaks</h1>
 </div>
