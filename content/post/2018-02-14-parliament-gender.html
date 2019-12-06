@@ -29,7 +29,7 @@ image: "https://jesse.tw/images/circle-arrows.png"
 <p>But you don’t need to take anyone’s word for it; we have data on gender and parliament. What does it say? On one hand, we just set a <a href="https://en.wikipedia.org/wiki/Women_in_the_42nd_Canadian_Parliament">record for female MPs in the 2015 election</a>! On the other hand, that record is still only 26%. Uh. Not great. But that’s only part of the story. A gender-balance cabinet helps (Trudeau appointed 15 female ministers out of a 30 minister cabinet). <em>But what actually happens when parliament gets down to business?</em></p>
 </div>
 <div id="the-data-httpsopenparliament.ca" class="section level2">
-<h2>The data: <a href="https://openparliament.ca/" class="uri">https://openparliament.ca/</a></h2>
+<h2>The data: <a href="https://openparliament.ca/">https://openparliament.ca/</a></h2>
 <p><a href="https://github.com/michaelmulley">Michael Mulley</a> (not a government employee, that would be too obvious) gathered all the parliament data and made a website! You can go to the site or the <a href="https://github.com/michaelmulley/openparliament">project’s github page</a> to see what’s up. There’s an API to access the data, but I had no idea how parliament works or what I was looking for, so I <a href="https://openparliament.ca/data-download/">downloaded a PostgreSQL</a> copy of the database to go through on my own. It’s about 4GB.</p>
 <div id="setup-postgres-and-the-database" class="section level3">
 <h3>Setup postgres and the database</h3>
@@ -160,11 +160,11 @@ han_df %&gt;% sample_n(5) # an easy way to look at a random sample of observatio
 ## # A tibble: 5 x 11
 ##   time                h1_en h2_en h3_en who_en politician_id wordcount
 ##   &lt;dttm&gt;              &lt;chr&gt; &lt;chr&gt; &lt;lgl&gt; &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;
-## 1 2010-10-27 16:40:00 &lt;NA&gt;  &lt;NA&gt;  NA    Ms. J…            NA         1
-## 2 2007-11-15 09:20:00 &lt;NA&gt;  &lt;NA&gt;  NA    Mr. P…           308         6
-## 3 2011-11-01 12:50:00 &lt;NA&gt;  &lt;NA&gt;  NA    Mr. G…            NA        68
-## 4 2013-01-30 14:50:00 Oral… Agri… NA    Ms. R…          8479        88
-## 5 2014-05-01 09:30:00 &lt;NA&gt;  &lt;NA&gt;  NA    Mr. A…            NA       274
+## 1 2015-04-27 17:10:00 &lt;NA&gt;  &lt;NA&gt;  NA    Mr. P…          8571       110
+## 2 2006-10-17 11:25:00 &lt;NA&gt;  &lt;NA&gt;  NA    The C…            25         6
+## 3 2015-05-13 15:45:00 &lt;NA&gt;  &lt;NA&gt;  NA    Ms. F…          1772         3
+## 4 2017-02-01 19:30:00 &lt;NA&gt;  &lt;NA&gt;  NA    Mr. F…         10081         6
+## 5 2010-12-02 11:00:00 &lt;NA&gt;  &lt;NA&gt;  NA    The C…           456       179
 ## # … with 4 more variables: who_hocid &lt;lgl&gt;, who_context_en &lt;lgl&gt;,
 ## #   name &lt;chr&gt;, gender &lt;chr&gt;</code></pre>
 <p>Ok, now we’re getting somewhere. I want to check two things: (1) what does the time distribution look like? and (2) can we get the gender of the MPs from names? We got genders from the politician database, but there are some sanity checks we’ll need. Leave that for later.</p>
@@ -187,13 +187,13 @@ han_df %&gt;% sample_n(5) # an easy way to look at a random sample of observatio
   filter(gender != &quot;&quot;)
 words_gender %&gt;% select(who_en, gender, gender_x) %&gt;% sample_n(5)
 ## # A tibble: 5 x 3
-##   who_en                                 gender gender_x
-##   &lt;chr&gt;                                  &lt;chr&gt;  &lt;chr&gt;   
-## 1 Mr. Fin Donnelly                       M      M       
-## 2 Mr. Adam Fanaki                        M      M       
-## 3 Mr. Ahmadshah Malgarai                 M      M       
-## 4 Mr. Scott Simms                        M      M       
-## 5 The Acting Speaker (Mr. Andrew Scheer) M      M</code></pre>
+##   who_en                                   gender gender_x
+##   &lt;chr&gt;                                    &lt;chr&gt;  &lt;chr&gt;   
+## 1 Mr. Greg Rickford (Kenora, CPC)          M      M       
+## 2 Mrs. Shelly Glover                       F      F       
+## 3 Ms. Sheri Benson                         F      F       
+## 4 Mr. Paul Szabo (Mississauga South, Lib.) M      M       
+## 5 The Acting Speaker (Mr. McClelland)      M      M</code></pre>
 Ok, that’s not bad; now what are the overall statistics?
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>

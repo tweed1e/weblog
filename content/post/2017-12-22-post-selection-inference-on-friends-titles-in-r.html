@@ -37,10 +37,10 @@ titles
 </div>
 <div id="method" class="section level2">
 <h2>Method</h2>
-<p>So, once we create language dummy variables to try to control for episode characteristics that may affect ratings, we find ourselves with too many predictors. There are only 236 episodes but we create way more language dummies 😮.</p>
+<p>So, once we create language dummy variables to try to control for episode characteristics that may affect ratings, we find ourselves with too many predictors. There are only 236 episodes but we create way more language dummies 🤭.</p>
 <p>This is a high-dimensional problem, with more explanatory variables than observations, <code>p&gt;&gt;n</code>. A few econometricians have proposed a post-selection estimator to solve these problems, which have a slightly different flavour than normal machine learning / prediction problems.</p>
 <p>Consider the goal: I want to know the effect of including a character’s name in an episode title. LASSO selects important variables that predict the outcome (rating, in my case). If we don’t penalize the character names, and there is another variable that is correlated with the outcome and one of the character names, then we end up with a biased estimate of the character effect. E.g., say most “Ross” episodes are directed by Kevin Bright, who is a “good” director according to the mean rating of all the episodes he directed). Then LASSO selects “Ross” to be in the model, but drops “Kevin Bright” because it’s so correlated with “Ross” (which means it doesn’t improve the rating prediction much), and LASSO will tell us that “Ross” has a high positive coefficient. But we know that Ross is trash and it’s only because Kevin Bright directed his episodes!</p>
-<p>The solution is called <strong>post-selection inference</strong>, explained in <a href="http://www.jstor.org/stable/23723483?casa_token=UtP_wvb6MYcAAAAA:jiY5Fzx0lZppTE4J3hiXcZu4_-_zxqjz1n9cc5dsQELc8NnEE8msIi3ZirYaGAXJLR1Dns_QV0pWbAqvneNm-U4OPuNNDWAzBqFjglKnX4Mg_RwyKys6kA&amp;seq=9#page_scan_tab_contents">“High-dimensional methods and inference on structural and treatment effects”</a> (Belloni, et al. 2013). They actually call it a ‘double selection procedure’ or post-double-selection, but post-selection is fine with me.</p>
+<p>The solution is called <strong>post-selection inference</strong>, explained in <a href="http://www.jstor.org/stable/23723483?casa_token=UtP_wvb6MYcAAAAA:jiY5Fzx0lZppTE4J3hiXcZu4_-_zxqjz1n9cc5dsQELc8NnEE8msIi3ZirYaGAXJLR1Dns_QV0pWbAqvneNm-U4OPuNNDWAzBqFjglKnX4Mg_RwyKys6kA&amp;seq=9#page_scan_tab_contents">“High-dimensional methods and inference on structural and treatment effects”</a> (Belloni, et al. 2013). They actually call it a ‘double selection procedure’ or post-double-selection, but post-selection is fine with me.</p>
 <p>The idea is: run LASSO on the outcome variable and everything but the character names; then run LASSO on each of the character names and the rest of the RHS variables. Take all the non-zero coefficients from all of these LASSO results, then regress rating on all the selected variables via a linear model (aka ordinary least squares).</p>
 </div>
 <div id="code" class="section level2">
@@ -175,7 +175,7 @@ post_vars &lt;- post_vars %&gt;%
                         value, 
                         gsub(&quot;\\d$&quot;, &quot;&quot;, value))) %&gt;%
   pull(value) %&gt;% c(gsub(&quot;1&quot;, &quot;&quot;, friends), .) %&gt;% unique()
-## Warning: Calling `as_tibble()` on a vector is discouraged, because the behavior is likely to change in the future. Use `enframe(name = NULL)` instead.
+## Warning: Calling `as_tibble()` on a vector is discouraged, because the behavior is likely to change in the future. Use `tibble::enframe(name = NULL)` instead.
 ## This warning is displayed once per session.
 
 post_dat &lt;- episodes %&gt;% mutate(x = 1) %&gt;% 

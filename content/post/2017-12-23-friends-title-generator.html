@@ -99,18 +99,18 @@ titles %&gt;% filter(grepl(&quot;dies&quot;, title, ignore.case = TRUE))
   new_title[-length(new_title)] %&gt;% paste(collapse = &quot; &quot;) %&gt;% stringr::str_to_title()
 }
 generate_title()
-## [1] &quot;The One That Could Have Been Part 2&quot;</code></pre>
+## [1] &quot;The One Where No One With The Thumb&quot;</code></pre>
 <p>Yeaaa! Here’s a few more:</p>
 <pre class="r"><code>replicate(5, generate_title())
-## [1] &quot;The One With George Stephanopoulos&quot;
-## [2] &quot;The One With Ross&#39;s Denial&quot;        
-## [3] &quot;The One With The Proposal Part 2&quot;  
-## [4] &quot;The One With The Stain&quot;            
-## [5] &quot;The One With The Thumb&quot;</code></pre>
+## [1] &quot;The One With The Ball&quot;                   
+## [2] &quot;The One With The Dirty Girl&quot;             
+## [3] &quot;The One With Mrs Bing&quot;                   
+## [4] &quot;The One Where Ross Says Rachel&quot;          
+## [5] &quot;The One Where Ross Meets Elizabeth&#39;s Dad&quot;</code></pre>
 <p>Problem: since this is based on only 236 titles, it tends to generate titles that already exist. E.g., there is only one time the word ‘George’ shows up in a title, so anytime the title generator hits ‘The One With George’, the next word will always be ‘Stephanopolous’, and then it will always end.</p>
 <p>We can try to fix this in the next installment, by using the <code>tidytext::parts_of_speech</code> dataset to generate sentence structures and then populate them with words, e.g., <code>&quot;the one where [noun] [verb]&quot;</code>.</p>
 <p>Anyway, here’s a title that’s randomly generated every time Netlify rebuilds this post:</p>
 </div>
-<div id="the-one-with-the-kissing" class="section level1">
-<h1>The One With The Kissing</h1>
+<div id="the-one-where-ross-grant" class="section level1">
+<h1>The One Where Ross Grant</h1>
 </div>
