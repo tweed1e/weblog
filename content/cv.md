@@ -11,7 +11,7 @@ description: 'An econometrics / data science curriculum vitae / resume. PhD, etc
 
 ### Employment :money_with_wings:
 
-Research Economist --- Statistics Canada, 2014--Current
+Research Economist --- Statistics Canada, 2014 to Present
 
 ### Education :school_satchel:
 
