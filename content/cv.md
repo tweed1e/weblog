@@ -1,7 +1,7 @@
 ---
 title: ">Jesse Tweedle" 
 author: "Jesse Tweedle"
-date: '2019-12-06'
+date: '2019-12-01'
 description: 'An econometrics / data science curriculum vitae / resume. PhD, etc.'
 ---
 
@@ -29,3 +29,5 @@ of provincial borders on trade when geography
 ### Working Papers :notebook:
 
 1. "Specialised vs. General Human Capital and Firm Productivity: Evidence from Canadian Matched Employer-Employee Data", with Margaret Leighton. Work in progress.
+
+2. "Labour Mobility: The Roles of Intra- and Inter-firm Migration in Canada", with W. Mark Brown and K. Bruce Newbold. Work in progress.
